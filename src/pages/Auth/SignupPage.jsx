@@ -9,7 +9,7 @@ import Checkbox from '../../components/common/Checkbox';
 import Button from '../../components/common/Button';
 
 const SignupPage = () => {
-  const { login } = useApp();
+  const { register } = useApp();
   const navigate = useNavigate();
 
   const [name, setName] = useState('');
@@ -46,13 +46,17 @@ const SignupPage = () => {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      login(email, password, 'Student');
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (validateForm()) {
+    try {
+      await register({ name, email, password, college });
       navigate('/dashboard');
+    } catch (err) {
+      setErrors({ email: err.message || 'Registration failed' });
     }
-  };
+  }
+};
 
   const handleGoogleSignUp = () => {
     login('alex.rivera@university.edu', 'secret123', 'Student');

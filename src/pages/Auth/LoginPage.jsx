@@ -6,38 +6,41 @@ import AuthLayout from '../../layouts/AuthLayout';
 import InputField from '../../components/common/InputField';
 import Checkbox from '../../components/common/Checkbox';
 import Button from '../../components/common/Button';
+import ForgotPasswordModal from '../../components/ForgotPasswordModal';
 
 const LoginPage = () => {
   const { login } = useApp();
   const navigate = useNavigate();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showForgot, setShowForgot] = useState(false);
 
   const validateForm = () => {
     const tempErrors = {};
     if (!email) tempErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(email)) tempErrors.email = "Please enter a valid email address";
-    
     if (!password) tempErrors.password = "Password is required";
     else if (password.length < 6) tempErrors.password = "Password must be at least 6 characters";
-    
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      login(email, password, 'Student');
-      navigate('/dashboard');
+      try {
+        await login(email, password);
+        navigate('/dashboard');
+      } catch (err) {
+        setErrors({ password: err.message || 'Login failed' });
+      }
     }
   };
 
   const handleGoogleSignIn = () => {
-    login('alex.rivera@university.edu', 'secret123', 'Student');
+    login('alex.rivera@university.edu', 'secret123');
     navigate('/dashboard');
   };
 
@@ -49,7 +52,6 @@ const LoginPage = () => {
           <h1 className="text-2xl font-bold font-poppins text-on-surface">Welcome back</h1>
           <p className="text-xs text-on-surface-variant">Login to your student account to check updates.</p>
         </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <InputField
@@ -63,11 +65,10 @@ const LoginPage = () => {
             required
             id="email-input"
           />
-
           <InputField
             label="Password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             icon={FiLock}
@@ -75,7 +76,6 @@ const LoginPage = () => {
             required
             id="password-input"
           />
-
           <div className="flex items-center justify-between gap-4 pt-1">
             <Checkbox
               label="Remember me"
@@ -83,16 +83,18 @@ const LoginPage = () => {
               onChange={(e) => setRememberMe(e.target.checked)}
               id="remember-me"
             />
-            <a href="#" className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
+            <button
+              type="button"
+              onClick={() => setShowForgot(true)}
+              className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+            >
               Forgot password?
-            </a>
+            </button>
           </div>
-
           <Button type="submit" variant="primary" fullWidth className="gap-2 mt-2 py-3">
             <FiLogIn size={16} /> Sign In
           </Button>
         </form>
-
         {/* Separator */}
         <div className="relative flex items-center justify-center my-4">
           <div className="absolute inset-x-0 h-[1px] bg-outline-variant"></div>
@@ -100,7 +102,6 @@ const LoginPage = () => {
             Or continue with
           </span>
         </div>
-
         {/* Google Sign In */}
         <button
           onClick={handleGoogleSignIn}
@@ -115,7 +116,6 @@ const LoginPage = () => {
           </svg>
           Google
         </button>
-
         {/* Link to Signup */}
         <p className="text-center text-xs text-on-surface-variant font-medium pt-2">
           Don't have an account?{' '}
@@ -124,6 +124,10 @@ const LoginPage = () => {
           </Link>
         </p>
       </div>
+
+      {showForgot && (
+        <ForgotPasswordModal initialEmail={email} onClose={() => setShowForgot(false)} />
+      )}
     </AuthLayout>
   );
 };
