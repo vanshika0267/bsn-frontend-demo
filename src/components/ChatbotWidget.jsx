@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FiMessageCircle, FiX, FiSend } from 'react-icons/fi';
 
 // Basic rule-based FAQ chatbot for BSN. No backend / no API key — it matches
@@ -64,7 +64,7 @@ const ChatbotWidget = () => {
         <button
           onClick={() => setOpen(true)}
           aria-label="Open chat"
-          className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-500"
+          className="fixed bottom-20 lg:bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-500"
         >
           <FiMessageCircle size={26} />
         </button>
@@ -72,7 +72,7 @@ const ChatbotWidget = () => {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-5 right-5 z-50 flex h-[460px] w-[330px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10">
+        <div className="fixed bottom-20 lg:bottom-5 right-5 z-50 flex h-[460px] w-[330px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10">
           {/* Header */}
           <div className="flex items-center justify-between bg-indigo-600 px-4 py-3 text-white">
             <div className="flex items-center gap-2">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import Login3DBackground from '../components/auth/Login3DBackground';
 
 const AuthLayout = ({ children }) => {
   return (
@@ -37,10 +38,15 @@ const AuthLayout = ({ children }) => {
 
       {/* Right Column: Visual Showcase (Hidden on Mobile/Tablet) */}
       <div className="hidden lg:flex w-1/2 relative bg-surface-container-low overflow-hidden items-center justify-center p-12 select-none">
+        {/* 3D Animation Background */}
+        <div className="absolute inset-0 z-0">
+          <Login3DBackground />
+        </div>
         {/* Subtle grid overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.025)_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.025)_1px,transparent_1px)] bg-[size:32px_32px] z-1"></div>
 
         <div className="max-w-lg w-full relative z-10 flex flex-col gap-8">
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

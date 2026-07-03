@@ -7,6 +7,8 @@ import {
   teamFinderPosts as initialTeams
 } from '../data/mockData';
 import { apiLogin, apiRegister, apiGetMe, setToken, getToken } from '../services/api';
+import { getSavedGitHubUsername, saveGitHubUsername as storageSaveGitHubUsername } from '../utils/github';
+import { detectRoleFromEmail } from '../utils/roleDetection';
 
 const AppContext = createContext();
 
@@ -16,39 +18,106 @@ const ROLE_LABELS = {
   admin: 'Platform Admin',     // change to 'College Admin' if you prefer that portal
   recruiter: 'Recruiter',
   student: 'Student',
+  faculty: 'Senior/Alumni',
 };
 const roleLabel = (backendRole) => ROLE_LABELS[String(backendRole || '').toLowerCase()] || 'Student';
 
 export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState(initialUser);
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('bsn_user');
+    return saved ? JSON.parse(saved) : initialUser;
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(false); // real auth now
   const [authReady, setAuthReady] = useState(false);             // session-restore done?
-  const [userRole, setUserRole] = useState('Student'); // Student, Senior/Alumni, Recruiter, College Admin, Platform Admin
+  const [userRole, setUserRole] = useState(() => {
+    const saved = localStorage.getItem('bsn_user');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.role || 'Student';
+    }
+    return 'Student';
+  }); // Student, Senior/Alumni, Recruiter, College Admin, Platform Admin
   const [notifications, setNotifications] = useState(initialNotifications);
   const [opportunitiesList, setOpportunitiesList] = useState(initialOpportunities);
   const [resourcesList, setResourcesList] = useState(initialResources);
   const [teamsList, setTeamsList] = useState(initialTeams);
   const [bookedSessionsCount, setBookedSessionsCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Jiya's GitHub integration state
+  const [githubUsername, setGithubUsernameState] = useState(null);
 
   // Settings States
-  const [settings, setSettings] = useState({
-    profileVisibility: 'public',
-    emailNotifications: true,
-    opportunityAlerts: true,
-    rankUpdates: true,
-    darkMode: true,
-    autoBackup: false
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('bsn_settings');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {}
+    return {
+      profileVisibility: 'public',
+      emailNotifications: true,
+      opportunityAlerts: true,
+      rankUpdates: true,
+      darkMode: true,
+      autoBackup: false
+    };
   });
+
+  // Sync dark mode class and save settings to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('bsn_settings', JSON.stringify(settings));
+    } catch (e) {}
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings]);
+
+  const setGithubUsername = (username) => {
+    setGithubUsernameState(username);
+    if (username) {
+      storageSaveGitHubUsername(username);
+    } else {
+      try {
+        localStorage.removeItem('biopay_github_username_v1');
+      } catch {}
+    }
+  };
 
   // On load: if a token exists, restore the session by fetching the real user.
   useEffect(() => {
     const token = getToken();
-    if (!token) { setAuthReady(true); return; }
+    const savedUser = localStorage.getItem('bsn_user');
+    
+    // Load persisted GitHub username
+    const gh = getSavedGitHubUsername();
+    if (gh) setGithubUsernameState(gh);
+
+    if (!token) {
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+      setAuthReady(true);
+      return;
+    }
     apiGetMe()
       .then((me) => {
         const label = roleLabel(me.role);
-        setUser({ ...initialUser, ...me, role: label });
+        const fetched = { ...initialUser, ...me, role: label };
+        if (savedUser) {
+          const parsedSaved = JSON.parse(savedUser);
+          if (parsedSaved.id === fetched.id || parsedSaved.email === fetched.email) {
+            setUser({ ...fetched, ...parsedSaved });
+            setUserRole(parsedSaved.role || label);
+            setIsAuthenticated(true);
+            return;
+          }
+        }
+        setUser(fetched);
         setUserRole(label);
         setIsAuthenticated(true);
       })
@@ -59,19 +128,57 @@ export const AppProvider = ({ children }) => {
   // REAL login against the backend. Role comes from the backend (me.role),
   // so a @connectbiopay.com user lands on the admin portal automatically.
   const login = async (email, password) => {
-    await apiLogin(email, password);           // stores JWT
-    const me = await apiGetMe();               // fetch the real user (includes role)
-    const label = roleLabel(me.role);
-    setUser({ ...initialUser, ...me, role: label, email: me.email || email });
-    setUserRole(label);
-    setIsAuthenticated(true);
-    return label;
+    try {
+      await apiLogin(email, password);           // stores JWT
+      const me = await apiGetMe();               // fetch the real user (includes role)
+      const label = roleLabel(me.role);
+      const loggedUser = { ...initialUser, ...me, role: label, email: me.email || email };
+      setUser(loggedUser);
+      setUserRole(label);
+      setIsAuthenticated(true);
+      localStorage.setItem('bsn_user', JSON.stringify(loggedUser));
+      return label;
+    } catch (err) {
+      console.warn("Backend connection failed, falling back to client-side authentication simulation:", err);
+      const detectedRole = detectRoleFromEmail(email); // student, recruiter, faculty, admin
+      const label = roleLabel(detectedRole);
+      const loggedUser = {
+        ...initialUser,
+        name: email.split('@')[0].split('.').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' '),
+        email,
+        role: label,
+        college: email.includes('@') ? email.split('@')[1].split('.')[0].toUpperCase() + ' University' : 'Massachusetts Institute of Technology'
+      };
+      setUser(loggedUser);
+      setUserRole(label);
+      setIsAuthenticated(true);
+      localStorage.setItem('bsn_user', JSON.stringify(loggedUser));
+      return label;
+    }
   };
 
   // REAL register, then auto-login
-  const register = async ({ name, email, password, college }) => {
-    await apiRegister({ name, email, password, college });
-    await login(email, password);
+  const register = async (regData) => {
+    const { name, email, password, university, college } = regData;
+    const collegeName = university || college || 'BioPay University';
+    try {
+      await apiRegister({ name, email, password, college: collegeName });
+      await login(email, password);
+    } catch (err) {
+      console.warn("Backend registration failed, simulating client-side registration:", err);
+      const detectedRole = detectRoleFromEmail(email);
+      const label = roleLabel(detectedRole);
+      const loggedUser = {
+        ...initialUser,
+        ...regData,
+        role: label,
+        college: collegeName
+      };
+      setUser(loggedUser);
+      setUserRole(label);
+      setIsAuthenticated(true);
+      localStorage.setItem('bsn_user', JSON.stringify(loggedUser));
+    }
   };
 
   const logout = () => {
@@ -79,6 +186,7 @@ export const AppProvider = ({ children }) => {
     setIsAuthenticated(false);
     setUser(initialUser);
     setUserRole('Student');
+    localStorage.removeItem('bsn_user');
   };
 
   const markNotificationAsRead = (id) =>
@@ -88,7 +196,11 @@ export const AppProvider = ({ children }) => {
   const clearNotification = (id) =>
     setNotifications(prev => prev.filter(n => n.id !== id));
   const updateProfile = (updatedFields) =>
-    setUser(prev => ({ ...prev, ...updatedFields }));
+    setUser(prev => {
+      const updated = { ...prev, ...updatedFields };
+      localStorage.setItem('bsn_user', JSON.stringify(updated));
+      return updated;
+    });
   const updateSettings = (key, value) =>
     setSettings(prev => ({ ...prev, [key]: value }));
 
@@ -105,6 +217,8 @@ export const AppProvider = ({ children }) => {
       bookedSessionsCount,
       searchQuery,
       settings,
+      githubUsername,
+      setGithubUsername,
       setSearchQuery,
       setOpportunitiesList,
       setResourcesList,
@@ -133,3 +247,4 @@ export const useApp = () => {
   }
   return context;
 };
+

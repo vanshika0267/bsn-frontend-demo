@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiBell, FiSearch, FiLogOut, FiUser, FiSettings, FiMenu } from 'react-icons/fi';
+import { FiBell, FiSearch, FiLogOut, FiUser, FiSettings, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = ({ onMenuClick }) => {
-  const { user, logout, notifications, searchQuery, setSearchQuery } = useApp();
+  const { user, logout, notifications, searchQuery, setSearchQuery, settings, updateSettings } = useApp();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
 
@@ -57,6 +57,17 @@ const Navbar = ({ onMenuClick }) => {
         {/* Search Toggle for Mobile */}
         <button className="p-2 hover:bg-surface-container rounded-lg text-on-surface-variant hover:text-on-surface md:hidden transition-colors">
           <FiSearch size={20} />
+        </button>
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={() => updateSettings('darkMode', !settings.darkMode)}
+          className="p-2.5 hover:bg-surface-container rounded-lg text-on-surface-variant hover:text-on-surface transition-colors"
+          title={settings.darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          aria-label="Toggle dark mode"
+          id="dark-mode-toggle"
+        >
+          {settings?.darkMode ? <FiSun size={20} className="text-amber-400 animate-spin-slow" /> : <FiMoon size={20} />}
         </button>
 
         {/* Notifications Icon */}

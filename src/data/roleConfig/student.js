@@ -33,7 +33,8 @@ export const studentConfig = {
   settingsTabs: [
     { id: 'profile', name: 'Profile Information' },
     { id: 'notifications', name: 'Email & Opportunity Alerts' },
-    { id: 'privacy', name: 'Profile Privacy Options' }
+    { id: 'privacy', name: 'Profile Privacy Options' },
+    { id: 'appearance', name: 'Appearance Preferences' }
   ],
   allowedTabs: ['overview', 'resources', 'upload', 'leaderboard', 'opportunities', 'learning-hub', 'team-finder', 'skill-gap', 'seniors', 'reviews'],
   recommendations: ['Software Engineering Mastery', 'Java Development Essentials']

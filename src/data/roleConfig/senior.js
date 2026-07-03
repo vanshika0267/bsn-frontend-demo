@@ -29,7 +29,8 @@ export const seniorConfig = {
   settingsTabs: [
     { id: 'profile', name: 'Profile & Experience' },
     { id: 'scheduling', name: 'Availability & Scheduling' },
-    { id: 'notifications', name: 'Alumni Alerts' }
+    { id: 'notifications', name: 'Alumni Alerts' },
+    { id: 'appearance', name: 'Appearance Preferences' }
   ],
   allowedTabs: ['overview', 'mentorship-requests', 'questions', 'resources', 'upload', 'reviews'],
   recommendations: ['Vetted Mock Interview Guide', 'System Architecture Best Practices']

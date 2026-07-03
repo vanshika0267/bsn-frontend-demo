@@ -1,5 +1,5 @@
 // Tiny API helper for talking to the BSN backend.
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const API_URL = "https://bsn-deploy.onrender.com";
 
 export const getToken = () => localStorage.getItem("bsn_token");
 export const setToken = (t) =>
