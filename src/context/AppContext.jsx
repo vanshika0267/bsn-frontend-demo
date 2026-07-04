@@ -191,7 +191,7 @@ export const AppProvider = ({ children }) => {
     } catch (err) {
       console.warn("Backend connection failed, falling back to client-side authentication simulation:", err);
       const detectedRole = detectRoleFromEmail(email); // student, recruiter, faculty, admin
-      const label = roleLabel(detectedRole);
+      const label = roleLabel(detectedRole?.role || detectedRole);
       const loggedUser = {
         ...initialUser,
         name: email.split('@')[0].split('.').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' '),
@@ -217,7 +217,7 @@ export const AppProvider = ({ children }) => {
     } catch (err) {
       console.warn("Backend registration failed, simulating client-side registration:", err);
       const detectedRole = detectRoleFromEmail(email);
-      const label = roleLabel(detectedRole);
+      const label = roleLabel(detectedRole?.role || detectedRole);
       const loggedUser = {
         ...initialUser,
         ...regData,
