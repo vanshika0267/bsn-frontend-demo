@@ -1,56 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useApp } from '../../../context/AppContext';
 import Card from '../../../components/common/Card';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
-import Modal from '../../../components/common/Modal';
-import { FiBookOpen, FiAward, FiCheckSquare, FiSquare, FiChevronRight, FiBarChart2 } from 'react-icons/fi';
+import { FiBookOpen, FiAward, FiChevronRight, FiBarChart2 } from 'react-icons/fi';
 
 const LearningHubTab = () => {
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      title: 'Software Engineering Mastery',
-      track: 'Software Engineering',
-      description: 'Master React, Tailwind CSS, Advanced Hooks, Redux Toolkit, and performance optimizations.',
-      modules: [
-        { id: 'fe-1', name: 'HTML5 Semantic Structure & SEO Best Practices', completed: true },
-        { id: 'fe-2', name: 'CSS Flexbox, Grid, & Advanced Tailwind Patterns', completed: true },
-        { id: 'fe-3', name: 'React Fundamentals & Component Lifecycle', completed: true },
-        { id: 'fe-4', name: 'Hooks Deep Dive: useEffect, custom hooks, and memoization', completed: false },
-        { id: 'fe-5', name: 'State Management: Context API & Redux Toolkit', completed: false },
-        { id: 'fe-6', name: 'Vite Compilation, Bundlers, & Production Deployments', completed: false },
-      ],
-      xpReward: 300,
-    },
-    {
-      id: 2,
-      title: 'Discrete Mathematics Foundation',
-      track: 'Discrete Mathematics',
-      description: 'Learn MVC, RESTful APIs, Node.js, Express, Postgres Database, and JWT authentications.',
-      modules: [
-        { id: 'be-1', name: 'Node.js Event Loop & Non-blocking I/O', completed: false },
-        { id: 'be-2', name: 'Express Server setup and Routing controllers', completed: false },
-        { id: 'be-3', name: 'Database schema design & migrations (Postgres)', completed: false },
-        { id: 'be-4', name: 'Authentication flow: JWT tokens and sessions', completed: false },
-      ],
-      xpReward: 400,
-    },
-    {
-      id: 3,
-      title: 'Java Development Essentials',
-      track: 'Java',
-      description: 'Understand Figma layouts, design systems, harmony of typography, and contrast rules.',
-      modules: [
-        { id: 'ui-1', name: 'Figma Auto layouts & component variant sets', completed: true },
-        { id: 'ui-2', name: 'Color harmonies (HSL) and dark-mode guidelines', completed: false },
-        { id: 'ui-3', name: 'Typography scales and layouts guidelines', completed: false },
-      ],
-      xpReward: 250,
-    }
-  ]);
-
-  const [activeCourse, setActiveCourse] = useState(null);
-  const [isModuleModalOpen, setIsModuleModalOpen] = useState(false);
+  const { courses } = useApp();
+  const navigate = useNavigate();
 
   const calculateProgress = (modules) => {
     if (!modules || modules.length === 0) return 0;
@@ -59,24 +17,7 @@ const LearningHubTab = () => {
   };
 
   const handleOpenCourse = (course) => {
-    setActiveCourse(course);
-    setIsModuleModalOpen(true);
-  };
-
-  const toggleModule = (moduleId) => {
-    setCourses(prev =>
-      prev.map(c => {
-        if (c.id === activeCourse.id) {
-          const updatedModules = c.modules.map(m =>
-            m.id === moduleId ? { ...m, completed: !m.completed } : m
-          );
-          // Sync state for local activeCourse modal display
-          setActiveCourse({ ...c, modules: updatedModules });
-          return { ...c, modules: updatedModules };
-        }
-        return c;
-      })
-    );
+    navigate(`/syllabus/edit?courseId=${course.id}`);
   };
 
   const totalProgress = Math.round(
@@ -156,55 +97,6 @@ const LearningHubTab = () => {
           );
         })}
       </div>
-
-      {/* Module Checklist Modal */}
-      {activeCourse && (
-        <Modal
-          isOpen={isModuleModalOpen}
-          onClose={() => setIsModuleModalOpen(false)}
-          title={`Syllabus Tracker - ${activeCourse.title}`}
-          size="md"
-        >
-          <div className="space-y-4">
-            <p className="text-xs text-on-surface-variant leading-relaxed text-left">
-              Check off the modules you have completed. Your dashboard progress bars will instantly recalculate.
-            </p>
-
-            <div className="space-y-2 border-t border-outline-variant pt-3 text-left">
-              {activeCourse.modules.map((mod) => (
-                <button
-                  key={mod.id}
-                  onClick={() => toggleModule(mod.id)}
-                  className="w-full flex items-start gap-3 p-3 bg-white border border-outline-variant hover:border-primary rounded-xl transition-all duration-150 text-left group"
-                >
-                  <div className="shrink-0 mt-0.5 text-primary group-hover:scale-105 transition-transform">
-                    {mod.completed ? (
-                      <FiCheckSquare size={18} className="text-success" />
-                    ) : (
-                      <FiSquare size={18} className="text-on-surface-variant" />
-                    )}
-                  </div>
-                  <div>
-                    <p className={`text-xs font-bold ${mod.completed ? 'text-on-surface-variant/70 line-through' : 'text-on-surface'}`}>
-                      {mod.name}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between border-t border-outline-variant pt-4 mt-6">
-              <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider flex items-center gap-1">
-                <FiAward className="h-4 w-4 text-primary" />
-                Completion XP: {activeCourse.xpReward} XP
-              </span>
-              <Button variant="primary" size="sm" onClick={() => setIsModuleModalOpen(false)}>
-                Done
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 };

@@ -229,17 +229,12 @@ const TeamFinderTab = () => {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold font-poppins text-on-surface">Alumni & Peer Team Finder</h2>
-            <div className={`h-2.5 w-2.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} 
-                 title={isConnected ? 'Connected to Backend WebSocket' : 'Simulating Local Socket Events'} />
-            <span className="text-[10px] text-on-surface-variant/70 font-semibold uppercase">
-              {isConnected ? 'Live Sync' : 'Simulated Sync'}
-            </span>
           </div>
           <p className="text-xs text-on-surface-variant">Form coding groups for hackathons, startup prototypes, or research challenges.</p>
         </div>
         <Button variant="primary" size="sm" className="flex items-center gap-2 shrink-0" onClick={() => setIsCreateModalOpen(true)}>
           <FiPlusCircle size={16} />
-          <span>Launch Squad</span>
+          <span>Create Team</span>
         </Button>
       </div>
 
@@ -359,7 +354,7 @@ const TeamFinderTab = () => {
               Cancel
             </Button>
             <Button type="submit" variant="primary" size="sm">
-              Launch Squad
+              Create Team
             </Button>
           </div>
         </form>

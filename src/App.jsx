@@ -9,6 +9,10 @@ import LoginPage from './pages/Auth/LoginPage';
 import SignupPage from './pages/Auth/SignupPage';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import ProfilePage from './pages/Profile/ProfilePage';
+import ProfileEditPage from './pages/Profile/ProfileEditPage';
+import SkillsEditPage from './pages/Profile/SkillsEditPage';
+import InterestsEditPage from './pages/Profile/InterestsEditPage';
+import SyllabusEditPage from './pages/Syllabus/SyllabusEditPage';
 import SettingsPage from './pages/Settings/SettingsPage';
 import NotificationsPage from './pages/Notifications/NotificationsPage';
 
@@ -26,6 +30,10 @@ function App() {
             {/* Protected */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/profile/edit" element={<ProtectedRoute><ProfileEditPage /></ProtectedRoute>} />
+            <Route path="/profile/edit/skills" element={<ProtectedRoute><SkillsEditPage /></ProtectedRoute>} />
+            <Route path="/profile/edit/interests" element={<ProtectedRoute><InterestsEditPage /></ProtectedRoute>} />
+            <Route path="/syllabus/edit" element={<ProtectedRoute><SyllabusEditPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 

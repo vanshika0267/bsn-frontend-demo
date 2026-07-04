@@ -44,6 +44,56 @@ export const AppProvider = ({ children }) => {
   const [bookedSessionsCount, setBookedSessionsCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   
+  const [courses, setCourses] = useState(() => {
+    const saved = localStorage.getItem('bsn_courses');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 1,
+        title: 'Software Engineering Mastery',
+        track: 'Software Engineering',
+        description: 'Master React, Tailwind CSS, Advanced Hooks, Redux Toolkit, and performance optimizations.',
+        modules: [
+          { id: 'fe-1', name: 'HTML5 Semantic Structure & SEO Best Practices', completed: true },
+          { id: 'fe-2', name: 'CSS Flexbox, Grid, & Advanced Tailwind Patterns', completed: true },
+          { id: 'fe-3', name: 'React Fundamentals & Component Lifecycle', completed: true },
+          { id: 'fe-4', name: 'Hooks Deep Dive: useEffect, custom hooks, and memoization', completed: false },
+          { id: 'fe-5', name: 'State Management: Context API & Redux Toolkit', completed: false },
+          { id: 'fe-6', name: 'Vite Compilation, Bundlers, & Production Deployments', completed: false },
+        ],
+        xpReward: 300,
+      },
+      {
+        id: 2,
+        title: 'Discrete Mathematics Foundation',
+        track: 'Discrete Mathematics',
+        description: 'Learn MVC, RESTful APIs, Node.js, Express, Postgres Database, and JWT authentications.',
+        modules: [
+          { id: 'be-1', name: 'Node.js Event Loop & Non-blocking I/O', completed: false },
+          { id: 'be-2', name: 'Express Server setup and Routing controllers', completed: false },
+          { id: 'be-3', name: 'Database schema design & migrations (Postgres)', completed: false },
+          { id: 'be-4', name: 'Authentication flow: JWT tokens and sessions', completed: false },
+        ],
+        xpReward: 400,
+      },
+      {
+        id: 3,
+        title: 'Java Development Essentials',
+        track: 'Java',
+        description: 'Understand Figma layouts, design systems, harmony of typography, and contrast rules.',
+        modules: [
+          { id: 'ui-1', name: 'Figma Auto layouts & component variant sets', completed: true },
+          { id: 'ui-2', name: 'Color harmonies (HSL) and dark-mode guidelines', completed: false },
+          { id: 'ui-3', name: 'Typography scales and layouts guidelines', completed: false },
+        ],
+        xpReward: 250,
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('bsn_courses', JSON.stringify(courses));
+  }, [courses]);
+
   // Jiya's GitHub integration state
   const [githubUsername, setGithubUsernameState] = useState(null);
 
@@ -218,6 +268,8 @@ export const AppProvider = ({ children }) => {
       searchQuery,
       settings,
       githubUsername,
+      courses,
+      setCourses,
       setGithubUsername,
       setSearchQuery,
       setOpportunitiesList,

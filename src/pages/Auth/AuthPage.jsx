@@ -6,6 +6,46 @@ import Login3DBackground from '../../components/auth/Login3DBackground';
 import RoleBadge from '../../components/auth/RoleBadge';
 import { FiUser, FiMail, FiLock, FiBookOpen, FiUserCheck, FiArrowRight } from 'react-icons/fi';
 
+const validatePassword = (pw) => {
+  return {
+    minLength: pw.length >= 8,
+    hasUpper: /[A-Z]/.test(pw),
+    hasLower: /[a-z]/.test(pw),
+    hasNumber: /[0-9]/.test(pw),
+    hasSpecial: /[^A-Za-z0-9]/.test(pw)
+  };
+};
+
+const PasswordChecklist = ({ password }) => {
+  const checks = validatePassword(password);
+
+  const items = [
+    { label: 'Minimum 8 characters', met: checks.minLength },
+    { label: 'At least one uppercase letter (A-Z)', met: checks.hasUpper },
+    { label: 'At least one lowercase letter (a-z)', met: checks.hasLower },
+    { label: 'At least one number (0-9)', met: checks.hasNumber },
+    { label: 'At least one special character', met: checks.hasSpecial },
+  ];
+
+  return (
+    <div className="mt-2.5 p-3 rounded-xl bg-black/40 border border-white/10 space-y-1.5 text-xs text-left">
+      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 mb-1">Password Requirements</p>
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-center gap-2">
+          <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[10px] ${
+            item.met ? 'bg-green-500/20 text-green-400' : 'bg-slate-800 text-slate-500'
+          }`}>
+            {item.met ? '✓' : '•'}
+          </span>
+          <span className={item.met ? 'text-green-400 font-semibold' : 'text-slate-400'}>
+            {item.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function AuthPage({ initialMode }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -15,7 +55,10 @@ export default function AuthPage({ initialMode }) {
   const [mode, setMode] = useState(initialMode || urlMode);
 
   useEffect(() => {
-    setMode(urlMode);
+    // Only automatically switch mode based on URL if we are not in forgot password mode
+    if (mode !== 'forgot') {
+      setMode(urlMode);
+    }
   }, [urlMode]);
 
   // Shared fields
@@ -23,6 +66,7 @@ export default function AuthPage({ initialMode }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [name, setName] = useState('');
   const [terms, setTerms] = useState(false);
 
@@ -46,6 +90,7 @@ export default function AuthPage({ initialMode }) {
   const switchMode = (m) => {
     setMode(m);
     setErrors({});
+    if (m === 'forgot') return;
     navigate(m === 'register' ? '/signup' : '/login', { replace: true });
   };
 
@@ -78,8 +123,14 @@ export default function AuthPage({ initialMode }) {
     if (!email) tempErrors.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(email)) tempErrors.email = 'Please enter a valid email address';
     
-    if (!password) tempErrors.password = 'Password is required';
-    else if (password.length < 6) tempErrors.password = 'Password must be at least 6 characters';
+    if (!password) {
+      tempErrors.password = 'Password is required';
+    } else {
+      const checks = validatePassword(password);
+      if (!Object.values(checks).every(Boolean)) {
+        tempErrors.password = 'Password does not meet all complexity requirements';
+      }
+    }
     
     if (password !== confirmPassword) tempErrors.confirmPassword = 'Passwords do not match';
     if (!terms) tempErrors.terms = 'You must accept the Terms of Service';
@@ -112,6 +163,51 @@ export default function AuthPage({ initialMode }) {
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setErrors({ global: err.message || 'Registration failed' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setErrors({});
+    
+    const tempErrors = {};
+    if (!email) tempErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) tempErrors.email = 'Please enter a valid email address';
+    
+    if (!password) {
+      tempErrors.password = 'Password is required';
+    } else {
+      const checks = validatePassword(password);
+      if (!Object.values(checks).every(Boolean)) {
+        tempErrors.password = 'Password does not meet all complexity requirements';
+      }
+    }
+    
+    if (password !== confirmPassword) {
+      tempErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    if (Object.keys(tempErrors).length > 0) {
+      setErrors(tempErrors);
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Show success feedback
+      setErrors({ success: 'Password has been reset successfully! You can now log in.' });
+      setPassword('');
+      setConfirmPassword('');
+      setTimeout(() => {
+        setMode('login');
+        setErrors({});
+      }, 3000);
+    } catch (err) {
+      setErrors({ global: 'Password reset failed.' });
     } finally {
       setLoading(false);
     }
@@ -199,41 +295,45 @@ export default function AuthPage({ initialMode }) {
         <div className="relative z-10 w-full max-w-[460px] bg-[#0A101D]/75 sm:bg-white/[0.045] backdrop-blur-2xl border border-white/12 rounded-[28px] shadow-[0_32px_80px_rgba(0,0,0,0.65)] p-6 sm:p-9 transition-all duration-300 text-left">
           
           {/* Segmented Tab Bar */}
-          <div className="relative flex bg-black/45 p-1.5 rounded-2xl border border-white/10 mb-7 backdrop-blur-md">
-            <button
-              type="button"
-              onClick={() => switchMode('login')}
-              className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-medium transition-colors duration-200 rounded-xl ${
-                mode === 'login' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => switchMode('register')}
-              className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-medium transition-colors duration-200 rounded-xl ${
-                mode === 'register' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Register
-            </button>
-            <div
-              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-xl bg-gradient-to-r from-blue-600/90 to-indigo-600/90 border border-blue-400/30 shadow-[0_2px_12px_rgba(37,99,235,0.35)] transition-all duration-300 ease-out ${
-                mode === 'login' ? 'left-1.5' : 'left-[calc(50%+3px)]'
-              }`}
-            />
-          </div>
+          {mode !== 'forgot' && (
+            <div className="relative flex bg-black/45 p-1.5 rounded-2xl border border-white/10 mb-7 backdrop-blur-md">
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-medium transition-colors duration-200 rounded-xl ${
+                  mode === 'login' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => switchMode('register')}
+                className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-medium transition-colors duration-200 rounded-xl ${
+                  mode === 'register' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Register
+              </button>
+              <div
+                className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-xl bg-gradient-to-r from-blue-600/90 to-indigo-600/90 border border-blue-400/30 shadow-[0_2px_12px_rgba(37,99,235,0.35)] transition-all duration-300 ease-out ${
+                  mode === 'login' ? 'left-1.5' : 'left-[calc(50%+3px)]'
+                }`}
+              />
+            </div>
+          )}
 
           {/* Form Header */}
           <div className="mb-6">
             <h2 className="font-display text-[24px] sm:text-[26px] font-semibold text-white tracking-tight">
-              {mode === 'login' ? 'Welcome back' : 'Create an account'}
+              {mode === 'login' ? 'Welcome back' : mode === 'register' ? 'Create an account' : 'Reset password'}
             </h2>
             <p className="text-slate-400 text-[13px] sm:text-[14px] mt-1 leading-relaxed">
               {mode === 'login'
                 ? 'Enter your institutional credentials to access your workspace'
-                : 'Join the BioPay Student Network in less than 60 seconds'}
+                : mode === 'register'
+                ? 'Join the BioPay Student Network in less than 60 seconds'
+                : 'Enter your institutional email and set a new secure password'}
             </p>
           </div>
 
@@ -265,13 +365,13 @@ export default function AuthPage({ initialMode }) {
                   <label htmlFor="login-password" className="block text-[13px] font-medium text-slate-300">
                     Password
                   </label>
-                  <a
-                    href="#forgot"
-                    onClick={(e) => e.preventDefault()}
-                    className="text-[12px] text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                  <button
+                    type="button"
+                    onClick={() => switchMode('forgot')}
+                    className="text-[12px] text-blue-400 hover:text-blue-300 transition-colors font-medium bg-transparent border-none cursor-pointer"
                   >
                     Forgot password?
-                  </a>
+                  </button>
                 </div>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
@@ -319,7 +419,7 @@ export default function AuthPage({ initialMode }) {
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
-          ) : (
+          ) : mode === 'register' ? (
             /* REGISTER FORM */
             <form onSubmit={handleRegister} className="space-y-4 max-h-[58vh] overflow-y-auto pr-1">
               <div>
@@ -384,12 +484,28 @@ export default function AuthPage({ initialMode }) {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Min 6 chars"
+                      placeholder="Min 8 chars"
                       className={`w-full pl-10 pr-11 py-3 rounded-xl bg-black/35 border ${
                         errors.password ? 'border-red-500' : 'border-white/12'
                       } text-white placeholder:text-slate-500 text-[14px] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all`}
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? (
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94M1 1l22 22" />
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                   {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
                 </div>
@@ -404,19 +520,38 @@ export default function AuthPage({ initialMode }) {
                     </span>
                     <input
                       id="reg-confirm-password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/35 border ${
+                      className={`w-full pl-10 pr-11 py-3 rounded-xl bg-black/35 border ${
                         errors.confirmPassword ? 'border-red-500' : 'border-white/12'
                       } text-white placeholder:text-slate-500 text-[14px] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all`}
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                    >
+                      {showConfirmPassword ? (
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94M1 1l22 22" />
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                   {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
                 </div>
               </div>
+
+              {/* Password dynamic validation checklist */}
+              {password && <PasswordChecklist password={password} />}
 
               {/* Conditional Role-Specific Fields */}
               {detectedRole && detectedRole !== 'admin' && (
@@ -539,6 +674,143 @@ export default function AuthPage({ initialMode }) {
               >
                 {loading ? 'Registering...' : 'Register Account'}
               </button>
+            </form>
+          ) : (
+            /* FORGOT / RESET PASSWORD FORM */
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label htmlFor="forgot-email" className="block text-[13px] font-medium text-slate-300 mb-1.5">
+                  Institutional Email
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                    <FiMail size={16} />
+                  </span>
+                  <input
+                    id="forgot-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@student.biopay.edu"
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl bg-black/35 border ${
+                      errors.email ? 'border-red-500' : 'border-white/12'
+                    } text-white placeholder:text-slate-500 text-[14px] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all`}
+                    required
+                  />
+                </div>
+                {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="forgot-password" className="block text-[13px] font-medium text-slate-300 mb-1.5">
+                  New Password *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                    <FiLock size={16} />
+                  </span>
+                  <input
+                    id="forgot-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className={`w-full pl-10 pr-11 py-3 rounded-xl bg-black/35 border ${
+                      errors.password ? 'border-red-500' : 'border-white/12'
+                    } text-white placeholder:text-slate-500 text-[14px] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all`}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? (
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94M1 1l22 22" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
+                
+                {/* Dynamic Checklist */}
+                {password && <PasswordChecklist password={password} />}
+              </div>
+
+              <div>
+                <label htmlFor="forgot-confirm-password" className="block text-[13px] font-medium text-slate-300 mb-1.5">
+                  Confirm New Password *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                    <FiLock size={16} />
+                  </span>
+                  <input
+                    id="forgot-confirm-password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className={`w-full pl-10 pr-11 py-3 rounded-xl bg-black/35 border ${
+                      errors.confirmPassword ? 'border-red-500' : 'border-white/12'
+                    } text-white placeholder:text-slate-500 text-[14px] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all`}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showConfirmPassword ? (
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94M1 1l22 22" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
+              </div>
+
+              {errors.success && (
+                <div className="text-[13px] text-green-300 bg-green-950/50 border border-green-500/30 px-4 py-3 rounded-xl">
+                  {errors.success}
+                </div>
+              )}
+
+              {errors.global && (
+                <div className="text-[13px] text-red-300 bg-red-950/50 border border-red-500/30 px-4 py-3 rounded-xl">
+                  {errors.global}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl font-medium text-white text-[14px] bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 shadow-[0_8px_25px_rgba(37,99,235,0.35)] hover:shadow-[0_10px_30px_rgba(37,99,235,0.5)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
+              >
+                {loading ? 'Resetting Password...' : 'Reset Password'}
+              </button>
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => switchMode('login')}
+                  className="text-[13px] text-blue-400 hover:text-blue-300 transition-colors font-medium bg-transparent border-none cursor-pointer"
+                >
+                  Back to Sign In
+                </button>
+              </div>
             </form>
           )}
 

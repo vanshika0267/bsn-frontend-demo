@@ -21,7 +21,7 @@ export const studentConfig = {
   ],
   quickActions: [
     { id: 'share-resource', label: 'Share Resource', action: 'upload', variant: 'primary' },
-    { id: 'launch-squad', label: 'Launch Squad', action: 'squad', variant: 'outline' }
+    { id: 'launch-squad', label: 'Create Team', action: 'squad', variant: 'outline' }
   ],
   dashboardWidgets: [
     'welcome-card',

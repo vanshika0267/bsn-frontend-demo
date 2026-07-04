@@ -388,3 +388,38 @@
 .dark ::placeholder {
   color: rgba(148, 163, 184, 0.5) !important;
 }
+
+/* GitHub Connection Card Dark Mode Styling overrides */
+.dark .github-inner-card {
+  background-color: var(--color-surface-container-low) !important;
+  border-color: var(--color-outline-variant) !important;
+}
+
+.dark .github-username-input {
+  background-color: var(--color-surface-container-lowest) !important;
+  border-color: var(--color-outline-variant) !important;
+  color: var(--color-on-surface) !important;
+}
+
+.dark .github-username-input::placeholder {
+  color: rgba(148, 163, 184, 0.6) !important;
+}
+
+.dark .github-username-input:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .github-connect-button {
+  background-color: var(--color-primary-container) !important;
+  color: var(--color-on-primary) !important;
+}
+
+.dark .github-connect-button:hover {
+  background-color: var(--color-primary) !important;
+}
+
+.dark .github-helper-text {
+  color: var(--color-on-surface-variant) !important;
+}
+

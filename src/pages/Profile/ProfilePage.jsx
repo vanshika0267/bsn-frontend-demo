@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   FiEdit, FiMapPin, FiBriefcase, FiLink, FiDownload, FiCheck, 
@@ -17,6 +18,7 @@ const getDefaultAvatar = (name) => `https://ui-avatars.com/api/?name=${encodeURI
 
 const ProfilePage = () => {
   const { user, updateProfile } = useApp();
+  const navigate = useNavigate();
   
   // Profile Picture Modal states
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -371,7 +373,7 @@ const ProfilePage = () => {
 
             {/* Actions button group */}
             <div className="flex flex-wrap gap-2 w-full md:w-auto relative z-10 shrink-0">
-              <Button onClick={() => setIsEditOpen(true)} variant="secondary" size="sm" className="gap-1.5 py-2 px-3 text-xs">
+              <Button onClick={() => navigate('/profile/edit')} variant="secondary" size="sm" className="gap-1.5 py-2 px-3 text-xs">
                 <FiEdit size={14} /> Edit Profile
               </Button>
               <Button onClick={handleCopyLink} variant="glass" size="sm" className="gap-1.5 py-2 px-3 text-xs">
@@ -404,7 +406,7 @@ const ProfilePage = () => {
               <div className="flex justify-between items-center mb-3.5">
                 <h3 className="text-sm font-bold text-on-surface font-poppins">Verified Skill Index</h3>
                 <button 
-                  onClick={openSkillsModal}
+                  onClick={() => navigate('/profile/edit/skills')}
                   className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors duration-200 outline-none focus:ring-2 focus:ring-primary/20"
                   title="Edit Skills"
                 >
@@ -438,7 +440,7 @@ const ProfilePage = () => {
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-sm font-bold text-on-surface font-poppins">Academic Interests</h3>
                 <button 
-                  onClick={openInterestsModal}
+                  onClick={() => navigate('/profile/edit/interests')}
                   className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors duration-200 outline-none focus:ring-2 focus:ring-primary/20"
                   title="Edit Interests"
                 >
@@ -511,53 +513,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Profile Edit Modal */}
-        <Modal
-          isOpen={isEditOpen}
-          onClose={() => setIsEditOpen(false)}
-          title="Edit Profile Details"
-          size="md"
-        >
-          <form onSubmit={handleSaveProfile} className="space-y-4">
-            <InputField
-              label="Full Name"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              required
-              id="edit-name"
-            />
-            
-            <InputField
-              label="Headline"
-              value={editHeadline}
-              onChange={(e) => setEditHeadline(e.target.value)}
-              required
-              id="edit-headline"
-            />
 
-            <div className="flex flex-col gap-1.5 w-full">
-              <label htmlFor="edit-bio" className="text-label-md font-label-md text-on-surface-variant">
-                Bio Description
-              </label>
-              <textarea
-                id="edit-bio"
-                rows={4}
-                value={editBio}
-                onChange={(e) => setEditBio(e.target.value)}
-                className="w-full text-body-md rounded-lg py-2 px-4 bg-white border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 outline-none text-on-surface"
-              />
-            </div>
-
-            <div className="flex gap-3 justify-end pt-2 border-t border-outline-variant">
-              <Button onClick={() => setIsEditOpen(false)} variant="outline" size="sm">
-                Cancel
-              </Button>
-              <Button type="submit" variant="primary" size="sm">
-                Save Changes
-              </Button>
-            </div>
-          </form>
-        </Modal>
 
         {/* Profile Picture Upload Modal */}
         <Modal
@@ -776,191 +732,7 @@ const ProfilePage = () => {
           </form>
         </Modal>
 
-        {/* Skills Edit Modal */}
-        <Modal
-          isOpen={isSkillsModalOpen}
-          onClose={() => setIsSkillsModalOpen(false)}
-          title="Edit Skills"
-          size="md"
-        >
-          <form onSubmit={handleSaveSkills} className="space-y-4">
-            
-            {/* Input with info */}
-            <div className="flex flex-col gap-1.5 w-full">
-              <label htmlFor="skill-tag-input" className="text-label-md font-label-md text-on-surface-variant">
-                Add Skill
-              </label>
-              <div className="flex gap-2 w-full">
-                <input
-                  id="skill-tag-input"
-                  type="text"
-                  placeholder="Type skill name (e.g. React) and press Enter"
-                  value={skillInput}
-                  onChange={(e) => setSkillInput(e.target.value)}
-                  onKeyDown={handleAddSkill}
-                  className="flex-1 min-w-0 text-body-md rounded-lg py-2 px-4 bg-white border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 outline-none text-on-surface"
-                />
-                <Button 
-                  onClick={handleAddSkillClick}
-                  variant="primary" 
-                  size="sm"
-                  className="shrink-0 font-bold px-4"
-                >
-                  Add
-                </Button>
-              </div>
-              <span className="text-[10px] text-on-surface-variant/85 italic">
-                Press Enter or click Add to create tag. Click any tag to edit it. Maximum of 20 skills.
-              </span>
-            </div>
 
-            {/* Error alerts */}
-            {skillsError && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-error/10 border border-error/20 text-error text-xs font-semibold">
-                <FiAlertCircle size={15} className="shrink-0" />
-                <span>{skillsError}</span>
-              </div>
-            )}
-
-            {/* Current Tags List */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-on-surface">Current Skills ({tempSkills.length}/20)</span>
-              <div className="flex flex-wrap gap-2 p-3 min-h-[80px] bg-surface rounded-xl border border-outline-variant/60">
-                {tempSkills.length === 0 ? (
-                  <span className="text-xs text-on-surface-variant italic m-auto select-none">No skills added yet.</span>
-                ) : (
-                  tempSkills.map((skill, idx) => (
-                    <motion.span 
-                      key={idx} 
-                      onClick={() => handleEditSkill(idx)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#eff6ff] text-[#1e40af] border border-primary/20 cursor-pointer select-none group transition-all hover:bg-primary hover:text-white duration-150 animate-fade-in"
-                      title="Click to edit"
-                    >
-                      <span>{skill.name}</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveSkill(idx);
-                        }}
-                        className="text-[#1e40af] hover:text-error rounded-full p-0.5 group-hover:text-white transition-colors"
-                        title="Remove Skill"
-                      >
-                        <FiX size={10} />
-                      </button>
-                    </motion.span>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 justify-end pt-3.5 border-t border-outline-variant">
-              <Button onClick={() => setIsSkillsModalOpen(false)} variant="outline" size="sm">
-                Cancel
-              </Button>
-              <Button type="submit" variant="primary" size="sm">
-                Save Skills
-              </Button>
-            </div>
-
-          </form>
-        </Modal>
-
-        {/* Interests Edit Modal */}
-        <Modal
-          isOpen={isInterestsModalOpen}
-          onClose={() => setIsInterestsModalOpen(false)}
-          title="Edit Interests"
-          size="md"
-        >
-          <form onSubmit={handleSaveInterests} className="space-y-4">
-            
-            {/* Input with info */}
-            <div className="flex flex-col gap-1.5 w-full">
-              <label htmlFor="interest-tag-input" className="text-label-md font-label-md text-on-surface-variant">
-                Add Interest
-              </label>
-              <div className="flex gap-2 w-full">
-                <input
-                  id="interest-tag-input"
-                  type="text"
-                  placeholder="Type interest name (e.g. Hackathons) and press Enter"
-                  value={interestInput}
-                  onChange={(e) => setInterestInput(e.target.value)}
-                  onKeyDown={handleAddInterest}
-                  className="flex-1 min-w-0 text-body-md rounded-lg py-2 px-4 bg-white border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 outline-none text-on-surface"
-                />
-                <Button 
-                  onClick={handleAddInterestClick}
-                  variant="primary" 
-                  size="sm"
-                  className="shrink-0 font-bold px-4"
-                >
-                  Add
-                </Button>
-              </div>
-              <span className="text-[10px] text-on-surface-variant/85 italic">
-                Press Enter or click Add to create tag. Click any tag to edit it. Maximum of 20 interests.
-              </span>
-            </div>
-
-            {/* Error alerts */}
-            {interestsError && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-error/10 border border-error/20 text-error text-xs font-semibold">
-                <FiAlertCircle size={15} className="shrink-0" />
-                <span>{interestsError}</span>
-              </div>
-            )}
-
-            {/* Current Tags List */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-on-surface">Current Interests ({tempInterests.length}/20)</span>
-              <div className="flex flex-wrap gap-2 p-3 min-h-[80px] bg-surface rounded-xl border border-outline-variant/60">
-                {tempInterests.length === 0 ? (
-                  <span className="text-xs text-on-surface-variant italic m-auto select-none">No interests added yet.</span>
-                ) : (
-                  tempInterests.map((interest, idx) => (
-                    <motion.span 
-                      key={idx} 
-                      onClick={() => handleEditInterest(idx)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-surface border border-outline-variant text-on-surface-variant cursor-pointer select-none group transition-all hover:bg-primary hover:text-white duration-150 animate-fade-in"
-                      title="Click to edit"
-                    >
-                      <span>{interest}</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveInterest(idx);
-                        }}
-                        className="text-on-surface-variant hover:text-error rounded-full p-0.5 group-hover:text-white transition-colors"
-                        title="Remove Interest"
-                      >
-                        <FiX size={10} />
-                      </button>
-                    </motion.span>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 justify-end pt-3.5 border-t border-outline-variant">
-              <Button onClick={() => setIsInterestsModalOpen(false)} variant="outline" size="sm">
-                Cancel
-              </Button>
-              <Button type="submit" variant="primary" size="sm">
-                Save Interests
-              </Button>
-            </div>
-
-          </form>
-        </Modal>
 
       </div>
     </DashboardLayout>
