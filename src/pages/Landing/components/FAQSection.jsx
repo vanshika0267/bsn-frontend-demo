@@ -48,7 +48,7 @@ export default function FAQSection() {
   };
 
   return (
-    <section id="faq" className="py-28 md:py-36 relative z-10 scroll-mt-20">
+    <section id="faq" className="pt-6 pb-6 md:pt-8 md:pb-8 relative z-10 scroll-mt-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
@@ -68,7 +68,7 @@ export default function FAQSection() {
         </div>
 
         {/* Accordions */}
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="show"
@@ -81,11 +81,10 @@ export default function FAQSection() {
               <motion.div
                 key={idx}
                 variants={itemVariants}
-                className={`rounded-2xl border transition-all duration-300 overflow-hidden bg-white/40 dark:bg-slate-900/10 backdrop-blur-md ${
-                  isOpen 
-                    ? 'border-primary/40 bg-white/60 dark:bg-slate-900/20 shadow-md shadow-primary/5' 
+                className={`rounded-2xl border transition-all duration-300 overflow-hidden bg-white/40 dark:bg-slate-900/10 backdrop-blur-md ${isOpen
+                    ? 'border-primary/40 bg-white/60 dark:bg-slate-900/20 shadow-md shadow-primary/5'
                     : 'border-slate-200/50 dark:border-slate-800/40 hover:border-slate-300 dark:hover:border-slate-700'
-                }`}
+                  }`}
               >
                 {/* Header/Question Trigger */}
                 <button
@@ -93,7 +92,7 @@ export default function FAQSection() {
                   className="w-full flex items-center justify-between p-6 text-left font-poppins font-bold text-xs sm:text-sm text-on-surface hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer"
                 >
                   <span className="font-semibold leading-normal">{faq.question}</span>
-                  <motion.div 
+                  <motion.div
                     animate={{ rotate: isOpen ? 90 : 0 }}
                     transition={{ duration: 0.2, ease: "easeInOut" }}
                     className="text-on-surface-variant ml-4 p-1 rounded-full bg-slate-100/50 dark:bg-slate-800/50"
@@ -124,7 +123,7 @@ export default function FAQSection() {
         </motion.div>
 
         {/* Bottom Callout Panel */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
@@ -140,13 +139,14 @@ export default function FAQSection() {
             <motion.a
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
-              href="mailto:connectbiopay@gmail.com"
+              href="mailto:support@biopay.com"
               className="px-6 py-2.5 rounded-full text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors inline-flex items-center gap-1.5 border border-slate-950 dark:border-white shadow-sm hover:shadow-[0_4px_15px_rgba(59,130,246,0.15)] cursor-pointer"
             >
               Contact support
             </motion.a>
           </div>
         </motion.div>
+
       </div>
     </section>
   );

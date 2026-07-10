@@ -68,7 +68,7 @@ export default function RoleBenefitsTabs() {
   const currentRole = roles.find((r) => r.id === activeTab);
 
   return (
-    <div id="roles" className="py-28 md:py-36 relative z-10 scroll-mt-20">
+    <div id="features" className="pt-6 pb-6 md:pt-8 md:pb-8 relative z-10 scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">

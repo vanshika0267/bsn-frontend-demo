@@ -18,7 +18,6 @@ import {
 } from 'react-icons/fi';
 import LandingNavbar from './components/LandingNavbar';
 import LandingFooter from './components/LandingFooter';
-import InteractiveBentoGrid from './components/InteractiveBentoGrid';
 import FAQSection from './components/FAQSection';
 import RoleBenefitsTabs from './components/RoleBenefitsTabs';
 
@@ -138,16 +137,20 @@ export default function LandingPage() {
             </div>
 
             {/* Right: Dashboard Illustration Mockup */}
-            <div className="lg:col-span-6 w-full flex items-center justify-center relative">
+            <div className="lg:col-span-6 w-full flex items-center justify-center relative mt-16 lg:mt-0">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
+                transition={{ 
+                  opacity: { duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] },
+                  scale: { duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] },
+                  y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                }}
                 className="relative w-full max-w-[550px] min-h-[500px] flex items-center justify-center z-10"
               >
 
                 {/* Premium Dashboard UI Mockup */}
-                <div className="w-full bg-white/55 dark:bg-slate-950/45 backdrop-blur-md rounded-2xl border border-slate-200/50 dark:border-slate-850/50 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] space-y-4 relative overflow-hidden">
+                <div className="w-full bg-white/25 dark:bg-slate-950/30 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-slate-800/30 p-5 shadow-[0_30px_70px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.6)] space-y-4 relative overflow-hidden">
 
                   {/* Top Bar Mockup */}
                   <div className="flex items-center justify-between pb-3 border-b border-slate-200/30 dark:border-slate-800/40">
@@ -168,7 +171,7 @@ export default function LandingPage() {
                     {/* Left Grid Content */}
                     <div className="col-span-12 sm:col-span-5 space-y-3">
                       {/* Profile Widget */}
-                      <div className="bg-white/90 dark:bg-slate-900/80 p-3.5 rounded-xl border border-slate-200/30 dark:border-slate-800/40">
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3.5 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
                         <div className="relative w-10 h-10 rounded-lg bg-gradient-to-tr from-primary to-blue-400 flex items-center justify-center font-bold text-white text-xs select-none">
                           AR
                           <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 border border-white dark:border-slate-900 text-[6px] font-bold">✓</span>
@@ -180,7 +183,7 @@ export default function LandingPage() {
                       </div>
 
                       {/* Portfolio Completion Gauge */}
-                      <div className="bg-white/90 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200/30 dark:border-slate-800/40 space-y-2">
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
                         <span className="text-[8px] font-bold text-on-surface-variant uppercase tracking-wider font-mono">Portfolio Status</span>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-bold text-on-surface">92% Done</span>
@@ -189,7 +192,7 @@ export default function LandingPage() {
                       </div>
 
                       {/* Skill Index */}
-                      <div className="bg-white/90 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200/30 dark:border-slate-800/40 space-y-2">
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
                         <span className="text-[8px] font-bold text-on-surface-variant uppercase tracking-wider font-mono">Skill Index</span>
                         <div className="space-y-1.5">
                           <div>
@@ -217,7 +220,7 @@ export default function LandingPage() {
                     {/* Right Grid Content */}
                     <div className="col-span-12 sm:col-span-7 space-y-3">
                       {/* Opportunities Internship Card */}
-                      <div className="bg-white/90 dark:bg-slate-900/80 p-3.5 rounded-xl border border-slate-200/30 dark:border-slate-800/40 space-y-2">
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3.5 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-[7px] font-bold text-white px-2 py-0.5 bg-primary rounded-full">RECOMMENDED</span>
                           <span className="text-[8px] font-bold text-emerald-500 font-mono">98% match</span>
@@ -229,7 +232,7 @@ export default function LandingPage() {
                       </div>
 
                       {/* Community Feed / Team Finder Widget */}
-                      <div className="bg-white/90 dark:bg-slate-900/80 p-3.5 rounded-xl border border-slate-200/30 dark:border-slate-800/40 space-y-2.5">
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3.5 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2.5">
                         <div className="flex items-center justify-between">
                           <span className="text-[8px] font-bold text-on-surface-variant uppercase tracking-wider font-mono">Team Finder</span>
                           <span className="text-[8px] text-primary font-bold">Recruiting</span>
@@ -244,7 +247,7 @@ export default function LandingPage() {
                       </div>
 
                       {/* Mentor Chat/Card */}
-                      <div className="bg-white/90 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200/30 dark:border-slate-800/40 flex items-center justify-between">
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[8px]">JS</div>
                           <div className="leading-tight">
@@ -263,7 +266,7 @@ export default function LandingPage() {
                 <motion.div
                   animate={{ y: [0, -6, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute -top-4 -left-6 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 px-3.5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 select-none"
+                  className="hidden sm:flex absolute -top-4 -left-6 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 px-3.5 py-1.5 rounded-full shadow-lg items-center gap-1.5 select-none"
                 >
                   <span className="w-3 h-3 rounded-full bg-emerald-500 flex items-center justify-center text-[7px] text-white font-bold">✓</span>
                   <span className="text-[9px] font-bold text-on-surface font-mono">Institutional Verified</span>
@@ -273,7 +276,7 @@ export default function LandingPage() {
                 <motion.div
                   animate={{ y: [0, 6, 0] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-                  className="absolute top-1/4 -right-12 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-3 rounded-xl shadow-lg text-left max-w-[170px] space-y-1"
+                  className="hidden md:block absolute top-1/4 -right-12 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-3 rounded-xl shadow-lg text-left max-w-[170px] space-y-1"
                 >
                   <div className="flex items-center justify-between text-[7px] font-mono">
                     <span className="font-bold text-primary uppercase">Offer</span>
@@ -286,7 +289,7 @@ export default function LandingPage() {
                 <motion.div
                   animate={{ y: [0, -5, 0] }}
                   transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-                  className="absolute -bottom-6 -right-2 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-3 rounded-xl shadow-lg text-left max-w-[180px] flex items-start gap-2"
+                  className="hidden sm:flex absolute -bottom-6 -right-2 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-3 rounded-xl shadow-lg text-left max-w-[180px] items-start gap-2"
                 >
                   <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-extrabold text-[8px] mt-0.5">JS</div>
                   <div className="space-y-0.5">
@@ -299,7 +302,7 @@ export default function LandingPage() {
                 <motion.div
                   animate={{ y: [0, 5, 0] }}
                   transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
-                  className="absolute bottom-10 -left-12 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-2.5 rounded-xl shadow-lg text-left space-y-1.5"
+                  className="hidden md:block absolute bottom-10 -left-12 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-2.5 rounded-xl shadow-lg text-left space-y-1.5"
                 >
                   <div className="flex items-center gap-1.5 text-[9px] font-bold text-on-surface font-mono">
                     <FiGithub className="text-primary" />
@@ -333,18 +336,24 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-28 md:py-36 border-b border-slate-200/20 dark:border-slate-800/20 relative z-10 scroll-mt-20">
+      <section id="how-it-works" className="pt-6 pb-6 md:pt-8 md:pb-8 relative z-10 scroll-mt-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
 
           {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-3xl mx-auto mb-20 space-y-4"
+          >
             <h2 className="font-poppins font-extrabold text-3xl sm:text-4xl text-on-surface leading-tight tracking-tight">
               From profile creation to career momentum in five clear steps.
             </h2>
             <p className="text-xs sm:text-sm text-on-surface-variant max-w-2xl mx-auto leading-relaxed font-sans">
               Start quickly, build trust, discover opportunities and collaborate with peers under senior guidance.
             </p>
-          </div>
+          </motion.div>
 
           {/* Connected Timeline */}
           <div className="max-w-2xl mx-auto relative pl-6 sm:pl-10 text-left">
@@ -414,109 +423,11 @@ export default function LandingPage() {
       {/* Role Benefits Section */}
       <RoleBenefitsTabs />
 
-      {/* Bento Grid Features */}
-      <InteractiveBentoGrid />
 
-      {/* STUDENT JOURNEY SECTION */}
-      <section className="py-28 md:py-36 border-b border-slate-200/20 dark:border-slate-800/20 relative z-10 scroll-mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-          {/* Header */}
-          <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
-            <h2 className="font-poppins font-extrabold text-3xl sm:text-4xl text-on-surface leading-tight tracking-tight">
-              The BSN Student Journey Roadmap
-            </h2>
-            <p className="text-xs sm:text-sm text-on-surface-variant max-w-2xl mx-auto leading-relaxed font-sans">
-              Trace how institutional verification and active collaboration drive your career momentum from Day 1.
-            </p>
-          </div>
-
-          {/* Journey Path */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto text-left">
-            {[
-              { title: "Freshman Launch", desc: "Create your profile with college email domain and setup your interests.", idx: "1" },
-              { title: "Build Skills", desc: "Complete learning track modules, synchronize repositories, and earn XP.", idx: "2" },
-              { title: "Join Team Quests", desc: "Partner with study groups or hackathon peers via BSN Team Finder.", idx: "3" },
-              { title: "Portfolio Sync", desc: "Auto-sync commits and metrics to build a recruiter-vetted portfolio page.", idx: "4" },
-              { title: "Land Internship", desc: "Apply directly to verified internship listings using your verified identity.", idx: "5" },
-              { title: "Guide / Mentorship", desc: "Give back to campus peers, review resumes, and manage schedules.", idx: "6" },
-              { title: "Alumni Status", desc: "Unlock alumni status badges (e.g. Alumni @ Stripe) to support juniors.", idx: "7" },
-              { title: "Career Placement", desc: "Get discovered by recruiters sorting by verified GitHub XP scores.", idx: "8" }
-            ].map((step, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.5, delay: idx * 0.05 }}
-                className="p-5 rounded-2xl bg-white/40 dark:bg-slate-900/10 backdrop-blur-md border border-slate-200/40 dark:border-slate-800/40 hover:border-primary/20 hover:shadow-md hover:shadow-primary/5 transition-all duration-300 relative group flex flex-col justify-between min-h-[140px]"
-              >
-                <div className="space-y-2">
-                  <h4 className="text-xs sm:text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
-                    {step.title}
-                  </h4>
-                  <p className="text-[11px] sm:text-xs text-on-surface-variant font-sans leading-relaxed">
-                    {step.desc}
-                  </p>
-                </div>
-                <div className="text-[18px] font-extrabold font-mono text-slate-250 dark:text-slate-800 mt-2 block select-none">
-                  #{step.idx}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-        </div>
-      </section>
       {/* FAQ Section */}
       <FAQSection />
 
-      {/* Final CTA Section */}
-      <section className="relative py-28 md:py-36 border-t border-slate-200/20 dark:border-slate-800/20 text-center overflow-hidden bg-background">
-        <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent pointer-events-none" />
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="space-y-4"
-          >
-            <h2 className="font-sora font-extrabold text-3xl sm:text-5xl text-on-surface leading-tight">
-              Ready to build your student profile?
-            </h2>
-            <p className="text-xs sm:text-sm text-on-surface-variant max-w-xl mx-auto leading-relaxed font-sans font-medium">
-              Consolidate your academic identity, repository syncs, project team finding, and alumni booking schedulers inside one unified, premium campus database.
-            </p>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex flex-col sm:flex-row justify-center items-center gap-3.5 pt-4"
-          >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-              <Link
-                to="/signup"
-                className="w-full sm:w-auto px-7 py-3.5 rounded-full text-xs font-bold bg-[#2563EB] hover:bg-[#1D4ED8] text-white flex items-center justify-center gap-1.5 border border-transparent shadow-[0_4px_20px_rgba(37,99,235,0.2)] cursor-pointer"
-              >
-                Get Started
-                <FiArrowRight size={13} />
-              </Link>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-              <Link
-                to="/login"
-                className="w-full sm:w-auto px-7 py-3.5 rounded-full text-xs font-bold bg-transparent border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors text-center text-on-surface cursor-pointer"
-              >
-                Access Account
-              </Link>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Footer */}
       <LandingFooter />

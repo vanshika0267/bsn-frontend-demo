@@ -10,12 +10,12 @@ export default function LandingFooter() {
   };
 
   return (
-    <footer className="border-t border-slate-200/20 dark:border-slate-800/20 bg-background relative z-10 font-sans mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        
+    <footer className="bg-background relative z-10 font-sans mt-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-16 md:pt-6">
+
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-12 mb-16">
-          
+
           {/* Brand Column (takes up 2 columns) */}
           <div className="md:col-span-2 space-y-6 text-left">
             <div className="flex items-center gap-2">
@@ -24,7 +24,7 @@ export default function LandingFooter() {
                 BioPay Student Network
               </span>
             </div>
-            
+
             <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed max-w-sm font-sans">
               Build a trusted academic identity, discover meaningful opportunities and connect with a stronger student community from one focused platform.
             </p>
@@ -32,9 +32,7 @@ export default function LandingFooter() {
             {/* Social Icons */}
             <div className="flex gap-4 pt-2">
               {[
-                { icon: FiGithub, href: "https://github.com" },
-                { icon: FiTwitter, href: "https://twitter.com" },
-                { icon: FiLinkedin, href: "https://linkedin.com" }
+                { icon: FiLinkedin, href: "https://www.linkedin.com/company/connectbiopay" }
               ].map((social, idx) => {
                 const Icon = social.icon;
                 return (
@@ -85,7 +83,7 @@ export default function LandingFooter() {
                 <Link to="/signup" className="hover:text-primary transition-colors">Create account</Link>
               </li>
               <li>
-                <a href="mailto:hello@biopaynet.com" className="hover:text-primary transition-colors">
+                <a href="mailto:support@biopay.com" className="hover:text-primary transition-colors">
                   Support Email
                 </a>
               </li>
