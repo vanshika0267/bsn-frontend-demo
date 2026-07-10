@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { detectRoleFromEmail, ROLE_META } from '../../utils/roleDetection';
 import Login3DBackground from '../../components/auth/Login3DBackground';
 import logo from '../../assets/logo.png';
+import { FiSun, FiMoon, FiCheck, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
 
 const validatePassword = (pw) => {
   return {
@@ -27,16 +28,18 @@ const PasswordChecklist = ({ password }) => {
   ];
 
   return (
-    <div className="mt-2.5 p-3 rounded-xl bg-black/40 border border-white/10 space-y-1.5 text-xs text-left">
-      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-400 mb-1">Password Requirements</p>
+    <div className="mt-2.5 p-3 rounded-xl bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800/60 space-y-1.5 text-xs text-left">
+      <p className="font-bold text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Password Requirements</p>
       {items.map((item, idx) => (
         <div key={idx} className="flex items-center gap-2">
           <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[10px] ${
-            item.met ? 'bg-green-500/20 text-green-400' : 'bg-slate-800 text-slate-500'
+            item.met 
+              ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' 
+              : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-500'
           }`}>
             {item.met ? '✓' : '•'}
           </span>
-          <span className={item.met ? 'text-green-400 font-semibold' : 'text-slate-400'}>
+          <span className={item.met ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}>
             {item.label}
           </span>
         </div>
@@ -48,7 +51,7 @@ const PasswordChecklist = ({ password }) => {
 export default function AuthPage({ initialMode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, register } = useApp();
+  const { login, register, settings, updateSettings } = useApp();
 
   // Derive mode from URL
   const urlMode = location.pathname.includes('register') || location.pathname.includes('signup') ? 'register' : 'login';
@@ -260,7 +263,7 @@ export default function AuthPage({ initialMode }) {
       type="button"
       aria-label={isVisible ? 'Hide password' : 'Show password'}
       onClick={toggleFunc}
-      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white transition-colors rounded-lg"
+      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors rounded-lg cursor-pointer"
     >
       {isVisible ? (
         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -281,29 +284,57 @@ export default function AuthPage({ initialMode }) {
     return (
       <div className={`text-[13px] border px-4 py-3 rounded-xl ${
         isSuccess
-          ? 'text-green-300 bg-green-950/50 border-green-500/30'
-          : 'text-red-300 bg-red-950/50 border-red-500/30'
+          ? 'text-emerald-700 bg-emerald-50/80 dark:text-emerald-300 dark:bg-emerald-950/50 border-emerald-200/60 dark:border-emerald-500/30'
+          : 'text-red-700 bg-red-50/80 dark:text-red-300 dark:bg-red-950/50 border-red-200/60 dark:border-red-500/30'
       }`}>
         {isSuccess ? error.success : error}
       </div>
     );
   };
 
-  const inputClass = "w-full px-4 py-3 rounded-xl bg-black/35 border border-white/12 text-white placeholder:text-slate-500 text-[14px] focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200";
-  const labelClass = "block text-[13px] font-medium text-slate-300 mb-1.5";
-  const btnPrimaryClass = "w-full py-3.5 rounded-xl font-medium text-white text-[14px] bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 shadow-[0_8px_25px_rgba(37,99,235,0.35)] hover:shadow-[0_10px_30px_rgba(37,99,235,0.5)] hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200";
+  const getRoleBadgeClasses = (role) => {
+    switch (role) {
+      case 'student':
+        return 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200/50 dark:border-blue-800/40';
+      case 'faculty':
+        return 'bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400 border-purple-200/50 dark:border-purple-800/40';
+      case 'recruiter':
+        return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-800/40';
+      case 'admin':
+        return 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400 border-red-200/50 dark:border-red-800/40';
+      default:
+        return 'bg-slate-50 text-slate-600 dark:bg-slate-900/40 dark:text-slate-400 border-slate-200/50 dark:border-slate-800/40';
+    }
+  };
+
+  const inputClass = "w-full px-4 py-3 rounded-xl bsn-input placeholder:text-slate-400 dark:placeholder:text-slate-500 text-[14px] transition-all duration-200";
+  const labelClass = "block text-[13px] font-semibold text-slate-700 dark:text-slate-350 mb-1.5 font-sans";
+  const btnPrimaryClass = "w-full py-3.5 px-6 rounded-xl font-bold text-white text-[14px] bg-[#2563EB] hover:bg-[#1D4ED8] dark:bg-[#2563EB] dark:hover:bg-[#1D4ED8] shadow-[0_4px_20px_rgba(37,99,235,0.15)] hover:shadow-[0_6px_25px_rgba(37,99,235,0.25)] hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5";
 
   return (
-    <div className="min-h-screen bg-[#0B1220] text-white flex flex-col lg:flex-row relative overflow-hidden font-sans selection:bg-blue-500 selection:text-white text-left">
+    <div className="min-h-screen bg-background text-on-surface flex flex-col lg:flex-row relative overflow-hidden font-sans selection:bg-primary/20 bg-grid-pattern bg-noise text-left transition-colors duration-300">
       {/* 3D Animation Background spanning across BOTH Left Hero and Right Login/Register section */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
-        <Login3DBackground />
+        <Login3DBackground isDark={settings?.darkMode} />
       </div>
 
       {/* Cosmic Ambient Background Glows across the whole page */}
-      <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none z-0" />
-      <div className="absolute top-1/2 left-1/3 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[150px] pointer-events-none z-0" />
-      <div className="absolute -bottom-32 -right-32 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[140px] pointer-events-none z-0" />
+      <div className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[100px] sm:blur-[130px] pointer-events-none z-0 animate-pulse-glow" />
+      <div className="absolute top-1/2 left-1/3 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[110px] sm:blur-[140px] pointer-events-none z-0 animate-pulse-glow" />
+      <div className="absolute -bottom-32 -right-32 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[100px] sm:blur-[130px] pointer-events-none z-0 animate-pulse-glow" />
+
+      {/* Floating Theme Switch Toggle Button */}
+      <div className="absolute top-6 right-6 z-50">
+        <button
+          type="button"
+          onClick={() => updateSettings('darkMode', !settings.darkMode)}
+          className="p-2.5 bg-white/40 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-full text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer backdrop-blur-md shadow-sm"
+          title={settings.darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          aria-label="Toggle dark mode"
+        >
+          {settings.darkMode ? <FiSun size={16} className="text-amber-400" /> : <FiMoon size={16} />}
+        </button>
+      </div>
 
       {/* Left Hero Section */}
       <div className="relative w-full lg:w-[54%] xl:w-[56%] min-h-[380px] lg:min-h-screen flex flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 z-10 order-1">
@@ -316,59 +347,59 @@ export default function AuthPage({ initialMode }) {
               className="w-11 h-11 object-contain drop-shadow-[0_4px_18px_rgba(37,99,235,0.45)]"
             />
             <div>
-              <div className="text-[20px] font-display font-semibold tracking-tight text-white leading-tight">BioPay</div>
-              <div className="text-slate-400 text-[12px] font-normal">Student Network</div>
+              <div className="text-[20px] font-sans font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">BioPay</div>
+              <div className="text-slate-500 dark:text-slate-400 text-[12px] font-medium">Student Network</div>
             </div>
           </div>
         </header>
 
         {/* Hero Content */}
         <main className="relative z-10 my-auto py-10 lg:py-16 max-w-[540px]">
-          <h1 className="font-display text-[36px] sm:text-[46px] xl:text-[52px] leading-[1.08] font-bold tracking-tight text-white">
+          <h1 className="font-poppins text-[36px] sm:text-[46px] xl:text-[52px] leading-[1.08] font-bold tracking-tight text-slate-900 dark:text-white">
             One campus identity.<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-emerald-400">
+            <span className="bg-gradient-to-r from-[#10B981] to-[#34D399] bg-clip-text text-transparent block mt-2">
               Every opportunity.
             </span>
           </h1>
-          <p className="text-slate-300/90 text-[15px] sm:text-[16px] leading-relaxed mt-5 max-w-[460px]">
+          <p className="text-slate-650 dark:text-slate-350 text-[15px] sm:text-[16px] leading-relaxed mt-5 max-w-[460px] font-sans font-medium">
             Build your verified academic identity, showcase real achievements, and unlock internships, opportunities, and recognition — all in one place.
           </p>
 
-          <div className="mt-8 pt-8 border-t border-white/10 grid grid-cols-3 gap-4 sm:gap-6 max-w-[460px]">
+          <div className="mt-8 pt-8 border-t border-slate-200/50 dark:border-slate-800/50 grid grid-cols-3 gap-4 sm:gap-6 max-w-[460px]">
             <div>
-              <div className="text-[20px] sm:text-[22px] font-display font-semibold text-white tracking-tight">Verified Identity</div>
-              <div className="text-[12px] text-slate-400 mt-0.5">College-confirmed profile</div>
+              <div className="text-[20px] sm:text-[22px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Verified Identity</div>
+              <div className="text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">College-confirmed profile</div>
             </div>
             <div>
-              <div className="text-[20px] sm:text-[22px] font-display font-semibold text-white tracking-tight">Merit Scoring</div>
-              <div className="text-[12px] text-slate-400 mt-0.5">Earn as you contribute</div>
+              <div className="text-[20px] sm:text-[22px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Merit Scoring</div>
+              <div className="text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">Earn as you contribute</div>
             </div>
             <div>
-              <div className="text-[20px] sm:text-[22px] font-display font-semibold text-white tracking-tight">Opportunity Match</div>
-              <div className="text-[12px] text-slate-400 mt-0.5">Internships & more</div>
+              <div className="text-[20px] sm:text-[22px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Opportunity Match</div>
+              <div className="text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">Internships & more</div>
             </div>
           </div>
         </main>
 
         {/* Bottom Meta */}
-        <footer className="relative z-10 hidden sm:flex items-center gap-6 text-[12px] text-slate-400 font-medium">
-          <span className="flex items-center gap-1.5">✅ Verified Student Profiles</span>
-          <span className="flex items-center gap-1.5">🏆 Merit-Based Recognition</span>
-          <span className="flex items-center gap-1.5">🌐 BSN by ConnectBioPay</span>
+        <footer className="relative z-10 hidden sm:flex items-center gap-6 text-[12px] text-slate-500 dark:text-slate-400 font-semibold">
+          <span className="flex items-center gap-1.5"><FiCheck className="text-emerald-500" /> Verified Student Profiles</span>
+          <span className="flex items-center gap-1.5"><FiCheck className="text-emerald-500" /> Merit-Based Recognition</span>
+          <span className="flex items-center gap-1.5"><FiCheck className="text-emerald-500" /> BSN by ConnectBioPay</span>
         </footer>
       </div>
 
       {/* Right Auth Card Section */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12 z-10 order-2 relative">
-        <div className="relative z-10 w-full max-w-[440px] bg-[#0A101D]/75 sm:bg-white/[0.045] backdrop-blur-2xl border border-white/12 rounded-[28px] shadow-[0_32px_80px_rgba(0,0,0,0.65),0_0_40px_rgba(37,99,235,0.12)] p-6 sm:p-9 transition-all duration-300">
+        <div className="relative z-10 w-full max-w-[440px] bg-white/60 dark:bg-slate-950/40 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-800/50 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.05),0_0_30px_rgba(37,99,235,0.02)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.5),0_0_40px_rgba(37,99,235,0.1)] p-6 sm:p-9 transition-all duration-300">
           {/* Segmented Tab Bar */}
           {mode !== 'forgot' && (
-            <div className="relative flex bg-black/45 p-1.5 rounded-2xl border border-white/10 mb-7 backdrop-blur-md">
+            <div className="relative flex bg-slate-100/80 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/60 mb-7 backdrop-blur-md">
               <button
                 type="button"
                 onClick={() => switchMode('login')}
-                className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-medium transition-colors duration-200 rounded-xl ${
-                  mode === 'login' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+                className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-bold transition-colors duration-200 rounded-xl ${
+                  mode === 'login' ? 'text-white' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 Sign In
@@ -376,15 +407,15 @@ export default function AuthPage({ initialMode }) {
               <button
                 type="button"
                 onClick={() => switchMode('register')}
-                className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-medium transition-colors duration-200 rounded-xl ${
-                  mode === 'register' ? 'text-white' : 'text-slate-400 hover:text-slate-200'
+                className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-bold transition-colors duration-200 rounded-xl ${
+                  mode === 'register' ? 'text-white' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
                 Register
               </button>
               {/* Animated indicator */}
               <div
-                className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-xl bg-gradient-to-r from-blue-600/90 to-indigo-600/90 border border-blue-400/30 shadow-[0_2px_12px_rgba(37,99,235,0.35)] transition-all duration-300 ease-out ${
+                className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 border border-blue-400/20 dark:border-blue-400/30 shadow-[0_2px_12px_rgba(37,99,235,0.15)] dark:shadow-[0_2px_12px_rgba(37,99,235,0.35)] transition-all duration-300 ease-out ${
                   mode === 'login' ? 'left-1.5' : 'left-[calc(50%+3px)]'
                 }`}
               />
@@ -393,7 +424,7 @@ export default function AuthPage({ initialMode }) {
 
           {/* Card Header — changes based on mode & step */}
           <div className="mb-6">
-            <h2 className="font-display text-[24px] sm:text-[26px] font-semibold text-white tracking-tight">
+            <h2 className="font-poppins text-[24px] sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight">
               {mode === 'login'
                 ? 'Welcome back'
                 : mode === 'forgot'
@@ -402,7 +433,7 @@ export default function AuthPage({ initialMode }) {
                     ? 'Create an account'
                     : 'Complete your registration'}
             </h2>
-            <p className="text-slate-400 text-[13px] sm:text-[14px] mt-1 leading-relaxed">
+            <p className="text-slate-500 dark:text-slate-400 text-[13px] sm:text-[14px] mt-1.5 leading-relaxed font-sans font-medium">
               {mode === 'login'
                 ? 'Enter your credentials to access your workspace'
                 : mode === 'forgot'
@@ -440,7 +471,7 @@ export default function AuthPage({ initialMode }) {
                   <button
                     type="button"
                     onClick={() => switchMode('forgot')}
-                    className="text-[12px] text-blue-400 hover:text-blue-300 transition-colors font-medium bg-transparent border-none cursor-pointer"
+                    className="text-[12px] text-primary hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-bold bg-transparent border-none cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -520,14 +551,8 @@ export default function AuthPage({ initialMode }) {
             <form onSubmit={handleRegisterSubmit} className="space-y-4 max-h-[62vh] lg:max-h-[520px] overflow-y-auto pr-1">
               {/* Subtle role indicator */}
               {detectedRoleForRegister && ROLE_META[detectedRoleForRegister] && (
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className="text-[12px] font-medium px-3 py-1.5 rounded-full inline-flex items-center gap-1.5"
-                    style={{
-                      backgroundColor: ROLE_META[detectedRoleForRegister].bg,
-                      color: ROLE_META[detectedRoleForRegister].color,
-                    }}
-                  >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-[12px] font-bold px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border shadow-sm ${getRoleBadgeClasses(detectedRoleForRegister)}`}>
                     {ROLE_META[detectedRoleForRegister].icon} {ROLE_META[detectedRoleForRegister].label}
                   </span>
                 </div>
@@ -639,9 +664,9 @@ export default function AuthPage({ initialMode }) {
                   type="checkbox"
                   checked={terms}
                   onChange={e => setTerms(e.target.checked)}
-                  className="mt-1 rounded border-white/12 bg-black/35 text-blue-600 focus:ring-blue-500"
+                  className="mt-1 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-primary focus:ring-primary cursor-pointer"
                 />
-                <label htmlFor="reg-terms" className="text-slate-400 text-xs leading-normal">
+                <label htmlFor="reg-terms" className="text-slate-500 dark:text-slate-400 text-xs leading-normal cursor-pointer select-none">
                   I agree to the Terms of Service & Privacy Policy *
                 </label>
               </div>
@@ -652,9 +677,9 @@ export default function AuthPage({ initialMode }) {
                 <button
                   type="button"
                   onClick={() => { setRegisterStep(1); setError(''); }}
-                  className="py-3.5 px-5 rounded-xl font-medium text-slate-300 text-[14px] border border-white/12 hover:bg-white/5 transition-all duration-200"
+                  className="py-3.5 px-5 rounded-xl font-bold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white text-[14px] border border-slate-200 dark:border-slate-800 hover:bg-slate-100/50 dark:hover:bg-slate-900/50 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  ← Back
+                  <FiArrowLeft /> Back
                 </button>
                 <button
                   type="submit"
@@ -738,7 +763,7 @@ export default function AuthPage({ initialMode }) {
                 <button
                   type="button"
                   onClick={() => switchMode('login')}
-                  className="text-[13px] text-blue-400 hover:text-blue-300 transition-colors font-medium bg-transparent border-none cursor-pointer"
+                  className="text-[13px] text-primary hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-bold bg-transparent border-none cursor-pointer"
                 >
                   Back to Sign In
                 </button>
@@ -750,8 +775,8 @@ export default function AuthPage({ initialMode }) {
           {mode === 'login' && (
             <>
               <div className="relative flex items-center justify-center my-5">
-                <div className="absolute inset-x-0 h-[1px] bg-white/10"></div>
-                <span className="relative px-3 text-[10px] uppercase font-bold text-slate-500 bg-[#0A101D] tracking-wider">
+                <div className="absolute inset-x-0 h-[1px] bg-slate-200/55 dark:bg-slate-800/60"></div>
+                <span className="relative px-3 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 bg-[#fdfdfe] dark:bg-[#080d19] tracking-wider transition-colors duration-300">
                   Or connect with
                 </span>
               </div>
@@ -759,7 +784,7 @@ export default function AuthPage({ initialMode }) {
               <button
                 onClick={handleGoogleSignIn}
                 type="button"
-                className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-white/12 bg-white/[0.04] hover:bg-white/[0.08] px-4 py-3 text-sm font-semibold text-white transition-colors focus:outline-none"
+                className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:bg-slate-100/60 dark:hover:bg-slate-900/65 px-4 py-3.5 text-sm font-bold text-slate-800 dark:text-white transition-all cursor-pointer shadow-sm hover:shadow-[0_4px_15px_rgba(0,0,0,0.02)]"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -772,7 +797,7 @@ export default function AuthPage({ initialMode }) {
             </>
           )}
 
-          <div className="text-center text-[12px] text-slate-500 mt-6">
+          <div className="text-center text-[12px] text-slate-500 dark:text-slate-450 mt-6 font-medium">
             © {new Date().getFullYear()} BioPay Student Network • v2.0
           </div>
         </div>

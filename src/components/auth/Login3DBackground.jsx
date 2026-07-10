@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-export default function Login3DBackground() {
+export default function Login3DBackground({ isDark = true }) {
   const mountRef = useRef(null);
   const frameRef = useRef(0);
 
@@ -11,9 +11,15 @@ export default function Login3DBackground() {
     const width = container.clientWidth;
     const height = container.clientHeight;
 
+    const fogColor = isDark ? 0x000000 : 0xfafafc;
+    const knotColor = isDark ? 0x3b82f6 : 0x004ac6;
+    const knotEmissive = isDark ? 0x112244 : 0x0a1e3f;
+    const wireColor = isDark ? 0x60a5fa : 0x2563eb;
+    const particlesColor = isDark ? 0x93c5fd : 0x004ac6;
+
     // Scene
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x0b1220, 8, 24);
+    scene.fog = new THREE.Fog(fogColor, 8, 24);
 
     const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
     camera.position.set(0, 0.5, 6);
@@ -21,16 +27,16 @@ export default function Login3DBackground() {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x0b1220, 0);
+    renderer.setClearColor(fogColor, 0);
     container.appendChild(renderer.domElement);
 
     // Lights
-    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambient = new THREE.AmbientLight(0xffffff, isDark ? 0.6 : 0.8);
     scene.add(ambient);
-    const dir1 = new THREE.DirectionalLight(0x2563eb, 1.3);
+    const dir1 = new THREE.DirectionalLight(0x2563eb, isDark ? 1.3 : 1.5);
     dir1.position.set(5, 5, 5);
     scene.add(dir1);
-    const dir2 = new THREE.DirectionalLight(0x22c55e, 0.8);
+    const dir2 = new THREE.DirectionalLight(isDark ? 0x22c55e : 0x10b981, isDark ? 0.8 : 0.5);
     dir2.position.set(-5, -3, 2);
     scene.add(dir2);
     const point = new THREE.PointLight(0x7c3aed, 1.2, 22);
@@ -40,12 +46,12 @@ export default function Login3DBackground() {
     // Main knot – BioPay brand blue (slightly offset on desktop so it balances with right auth card)
     const knotGeo = new THREE.TorusKnotGeometry(1.2, 0.35, 180, 32);
     const knotMat = new THREE.MeshPhysicalMaterial({
-      color: 0x2563eb,
+      color: knotColor,
       metalness: 0.2,
       roughness: 0.25,
       clearcoat: 0.6,
       clearcoatRoughness: 0.2,
-      emissive: 0x112244,
+      emissive: knotEmissive,
       emissiveIntensity: 0.15,
     });
     const knot = new THREE.Mesh(knotGeo, knotMat);
@@ -54,7 +60,7 @@ export default function Login3DBackground() {
     scene.add(knot);
 
     // Inner wireframe spanning wide across the scene
-    const wireMat = new THREE.MeshBasicMaterial({ color: 0x60a5fa, wireframe: true, transparent: true, opacity: 0.2 });
+    const wireMat = new THREE.MeshBasicMaterial({ color: wireColor, wireframe: true, transparent: true, opacity: isDark ? 0.2 : 0.15 });
     const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(2.1, 1), wireMat);
     wire.position.x = width > 1024 ? -1.4 : 0;
     scene.add(wire);
@@ -71,9 +77,9 @@ export default function Login3DBackground() {
     particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
     const particlesMat = new THREE.PointsMaterial({
       size: 0.03,
-      color: 0x93c5fd,
+      color: particlesColor,
       transparent: true,
-      opacity: 0.85,
+      opacity: isDark ? 0.85 : 0.6,
     });
     const particles = new THREE.Points(particlesGeo, particlesMat);
     scene.add(particles);
@@ -162,7 +168,7 @@ export default function Login3DBackground() {
         container.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, [isDark]);
 
   return (
     <div ref={mountRef} className="absolute inset-0 w-full h-full">
