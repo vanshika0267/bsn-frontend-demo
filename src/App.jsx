@@ -1,12 +1,10 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { RoleProvider } from './context/RoleContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ChatbotWidget from './components/ChatbotWidget';
 import LandingPage from './pages/Landing/LandingPage';
-import LoginPage from './pages/Auth/LoginPage';
-import SignupPage from './pages/Auth/SignupPage';
+import AuthPage from './pages/Auth/AuthPage';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import ProfileEditPage from './pages/Profile/ProfileEditPage';
@@ -24,8 +22,10 @@ function App() {
           <Routes>
             {/* Public */}
             <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
+            <Route element={<AuthPage />}>
+              <Route path="/login" element={null} />
+              <Route path="/signup" element={null} />
+            </Route>
 
             {/* Protected */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />

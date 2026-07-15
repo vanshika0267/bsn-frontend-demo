@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { detectRoleFromEmail, ROLE_META } from '../../utils/roleDetection';
 import Login3DBackground from '../../components/auth/Login3DBackground';
 import logo from '../../assets/logo.png';
-import { FiSun, FiMoon, FiCheck, FiArrowRight, FiArrowLeft } from 'react-icons/fi';
+import { FiSun, FiMoon, FiCheck, FiArrowLeft } from 'react-icons/fi';
 
 const validatePassword = (pw) => {
   return {
@@ -61,14 +61,6 @@ export default function AuthPage({ initialMode }) {
   const [registerStep, setRegisterStep] = useState(1);
   const [detectedRoleForRegister, setDetectedRoleForRegister] = useState(null);
 
-  useEffect(() => {
-    if (mode !== 'forgot') {
-      setMode(urlMode);
-      setRegisterStep(1);
-      setDetectedRoleForRegister(null);
-    }
-  }, [urlMode, mode]);
-
   // Shared fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,9 +82,42 @@ export default function AuthPage({ initialMode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const resetFormFields = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setName('');
+    setCollegeName('');
+    setStartYear('');
+    setEndYear('');
+    setInstitutionName('');
+    setCompanyName('');
+    setTerms(false);
+    setError('');
+    setLoading(false);
+  };
+
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (urlMode === 'register') {
+      setMode('register');
+      setRegisterStep(1);
+      setDetectedRoleForRegister(null);
+      resetFormFields();
+    } else if (urlMode === 'login' && mode !== 'forgot') {
+      setMode('login');
+      setRegisterStep(1);
+      setDetectedRoleForRegister(null);
+      resetFormFields();
+    }
+  }, [urlMode]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+
   const switchMode = (m) => {
     setMode(m);
-    setError('');
+    resetFormFields();
     setRegisterStep(1);
     setDetectedRoleForRegister(null);
     if (m === 'forgot') return;
@@ -242,7 +267,7 @@ export default function AuthPage({ initialMode }) {
         setMode('login');
         setError('');
       }, 3000);
-    } catch (err) {
+    } catch {
       setError('Password reset failed.');
     } finally {
       setLoading(false);
@@ -313,6 +338,7 @@ export default function AuthPage({ initialMode }) {
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex flex-col lg:flex-row relative overflow-hidden font-sans selection:bg-primary/20 bg-grid-pattern bg-noise text-left transition-colors duration-300">
+      <Outlet />
       {/* 3D Animation Background spanning across BOTH Left Hero and Right Login/Register section */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
         <Login3DBackground isDark={settings?.darkMode} />
