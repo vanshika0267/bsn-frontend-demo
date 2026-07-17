@@ -47,8 +47,8 @@ export default function LandingNavbar() {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl z-50 transition-all duration-300 rounded-2xl md:rounded-full px-6 border ${
         scrolled 
-          ? 'py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.06)] bg-white/70 dark:bg-slate-950/70 border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md' 
-          : 'py-4 bg-transparent border-transparent'
+          ? 'py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.06)] bg-white/70 dark:bg-slate-950/70 border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md' 
+          : 'py-2.5 bg-transparent border-transparent'
       }`}
     >
       <div className="mx-auto">
