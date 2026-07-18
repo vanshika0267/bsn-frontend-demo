@@ -15,10 +15,10 @@ const AppContext = createContext();
 // Map the backend's role (admin | recruiter | student) to the frontend role
 // labels that RoleContext uses to pick which portal to show.
 const ROLE_LABELS = {
-  admin: 'Platform Admin',     // change to 'College Admin' if you prefer that portal
+  admin: 'Platform Admin',     
   recruiter: 'Recruiter',
   student: 'Student',
-  faculty: 'Senior/Alumni',
+  faculty: 'Faculty',
 };
 const roleLabel = (backendRole) => ROLE_LABELS[String(backendRole || '').toLowerCase()] || 'Student';
 
@@ -178,57 +178,23 @@ export const AppProvider = ({ children }) => {
   // REAL login against the backend. Role comes from the backend (me.role),
   // so a @connectbiopay.com user lands on the admin portal automatically.
   const login = async (email, password) => {
-    try {
-      await apiLogin(email, password);           // stores JWT
-      const me = await apiGetMe();               // fetch the real user (includes role)
-      const label = roleLabel(me.role);
-      const loggedUser = { ...initialUser, ...me, role: label, email: me.email || email };
-      setUser(loggedUser);
-      setUserRole(label);
-      setIsAuthenticated(true);
-      localStorage.setItem('bsn_user', JSON.stringify(loggedUser));
-      return label;
-    } catch (err) {
-      console.warn("Backend connection failed, falling back to client-side authentication simulation:", err);
-      const detectedRole = detectRoleFromEmail(email); // student, recruiter, faculty, admin
-      const label = roleLabel(detectedRole?.role || detectedRole);
-      const loggedUser = {
-        ...initialUser,
-        name: email.split('@')[0].split('.').map(n => n.charAt(0).toUpperCase() + n.slice(1)).join(' '),
-        email,
-        role: label,
-        college: email.includes('@') ? email.split('@')[1].split('.')[0].toUpperCase() + ' University' : 'Massachusetts Institute of Technology'
-      };
-      setUser(loggedUser);
-      setUserRole(label);
-      setIsAuthenticated(true);
-      localStorage.setItem('bsn_user', JSON.stringify(loggedUser));
-      return label;
-    }
+    await apiLogin(email, password);           // stores JWT (throws on bad credentials)
+    const me = await apiGetMe();               // fetch the real user (includes role)
+    const label = roleLabel(me.role);          // role comes from the backend
+    const loggedUser = { ...initialUser, ...me, role: label, email: me.email || email };
+    setUser(loggedUser);
+    setUserRole(label);
+    setIsAuthenticated(true);
+    localStorage.setItem('bsn_user', JSON.stringify(loggedUser));
+    return label;
   };
 
   // REAL register, then auto-login
   const register = async (regData) => {
     const { name, email, password, university, college } = regData;
     const collegeName = university || college || 'BioPay University';
-    try {
-      await apiRegister({ name, email, password, college: collegeName });
-      await login(email, password);
-    } catch (err) {
-      console.warn("Backend registration failed, simulating client-side registration:", err);
-      const detectedRole = detectRoleFromEmail(email);
-      const label = roleLabel(detectedRole?.role || detectedRole);
-      const loggedUser = {
-        ...initialUser,
-        ...regData,
-        role: label,
-        college: collegeName
-      };
-      setUser(loggedUser);
-      setUserRole(label);
-      setIsAuthenticated(true);
-      localStorage.setItem('bsn_user', JSON.stringify(loggedUser));
-    }
+    await apiRegister({ name, email, password, college: collegeName });
+    await login(email, password);
   };
 
   const logout = () => {

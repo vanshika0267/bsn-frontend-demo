@@ -1,27 +1,9 @@
-/**
- * Jiya - Authentication Flow + Role-Based Login
- * SRS-compliant role detection based on email domain
- */
 
 export const ROLE_DOMAINS = {
-  student: [
-    'student.biopay.com',
-    'student.biopay.edu',
-    's.biopay.edu',
-  ],
-  faculty: [
-    'faculty.biopay.com',
-    'faculty.biopay.edu',
-    'prof.biopay.edu',
-  ],
-  recruiter: [
-    'recruiter.biopay.com',
-    'hr.biopay.com',
-    'talent.biopay.com',
-  ],
-  admin: [
-    'admin.biopay.com',
-  ]
+  student:   ['stu.upes.ac.in'],
+  faculty:   ['ddn.upes.ac.in'],
+  recruiter: ['company.com'],
+  admin:     ['connectbiopay.com'],
 };
 
 export function detectRoleFromEmail(email) {
@@ -31,89 +13,14 @@ export function detectRoleFromEmail(email) {
 
   const lower = email.toLowerCase().trim();
   const domain = lower.split('@')[1] || '';
-  const localPart = lower.split('@')[0] || '';
 
-  // 1. Exact SRS domain match - HIGH confidence
   for (const [role, domains] of Object.entries(ROLE_DOMAINS)) {
     if (domains.includes(domain)) {
-      return {
-        role,
-        confidence: 'high',
-        matchedRule: `srs_exact_domain:${domain}`,
-        domain
-      };
+      return { role, confidence: 'high', matchedRule: `domain:${domain}`, domain };
     }
   }
 
-  // 2. Faculty detection
-  if (
-    domain.startsWith('faculty.') ||
-    localPart.startsWith('faculty.') ||
-    localPart.includes('prof.') ||
-    domain.includes('faculty') ||
-    localPart.includes('professor')
-  ) {
-    return { role: 'faculty', confidence: 'high', matchedRule: 'faculty_pattern', domain };
-  }
-
-  // 3. Recruiter detection
-  if (
-    domain.startsWith('recruiter.') ||
-    domain.startsWith('hr.') ||
-    domain.startsWith('talent.') ||
-    localPart.includes('recruiter') ||
-    localPart.includes('hr.') ||
-    localPart.includes('.hr@') ||
-    domain.includes('company') ||
-    domain.includes('corp') ||
-    domain.includes('hiring')
-  ) {
-    return { role: 'recruiter', confidence: 'high', matchedRule: 'recruiter_pattern', domain };
-  }
-
-  // 4. Admin detection
-  if (
-    domain.startsWith('admin.') ||
-    localPart.startsWith('admin') ||
-    localPart.includes('superadmin')
-  ) {
-    return { role: 'admin', confidence: 'high', matchedRule: 'admin_pattern', domain };
-  }
-
-  // 5. Student academic domains - HIGH confidence
-  if (
-    domain.endsWith('.edu') ||
-    domain.endsWith('.ac.in') ||
-    domain.endsWith('.edu.in') ||
-    domain.includes('university') ||
-    domain.includes('college') ||
-    domain.includes('institute')
-  ) {
-    return { role: 'student', confidence: 'high', matchedRule: 'academic_domain', domain };
-  }
-
-  // 6. Student pattern - MEDIUM
-  if (
-    domain.startsWith('student.') ||
-    localPart.startsWith('student') ||
-    localPart.includes('.student') ||
-    localPart.match(/^s\d+/) || // s12345 pattern
-    domain.includes('student')
-  ) {
-    return { role: 'student', confidence: 'medium', matchedRule: 'student_pattern', domain };
-  }
-
-  // Default fallback for Biopay domains
-  if (domain.includes('biopay')) {
-    return { role: 'student', confidence: 'medium', matchedRule: 'biopay_default_student', domain };
-  }
-
-  // Unknown domain - low confidence, default student (will show confirmation)
-  if (domain) {
-    return { role: 'student', confidence: 'low', matchedRule: 'fallback_default', domain };
-  }
-
-  return { role: null, confidence: 'low', matchedRule: 'no_domain', domain };
+  return { role: 'student', confidence: 'low', matchedRule: 'default_student', domain };
 }
 
 export const ROLE_META = {
@@ -151,42 +58,19 @@ export const ROLE_META = {
   }
 };
 
+const LOGIN_HELP_TEXT = 'Please use your registered email id to log in.';
+
 export function getRoleLoginFields(role) {
   switch (role) {
     case 'student':
-      return {
-        title: 'Student Login',
-        subtitle: 'Access your learning dashboard',
-        fields: ['university', 'graduationYear', 'major'],
-        helpText: 'Use your .edu / .ac.in email or student.biopay.com'
-      };
+      return { title: 'Student Login', subtitle: 'Access your learning dashboard', fields: ['university', 'graduationYear', 'major'], helpText: LOGIN_HELP_TEXT };
     case 'faculty':
-      return {
-        title: 'Faculty Portal',
-        subtitle: 'Teaching & research dashboard',
-        fields: ['department', 'institution', 'designation'],
-        helpText: 'Use your faculty.biopay.edu email'
-      };
+      return { title: 'Faculty Portal', subtitle: 'Teaching & research dashboard', fields: ['department', 'institution', 'designation'], helpText: LOGIN_HELP_TEXT };
     case 'recruiter':
-      return {
-        title: 'Recruiter Access',
-        subtitle: 'Talent acquisition portal',
-        fields: ['company', 'position', 'industry'],
-        helpText: 'Use your company or recruiter.biopay.com email'
-      };
+      return { title: 'Recruiter Access', subtitle: 'Talent acquisition portal', fields: ['company', 'position', 'industry'], helpText: LOGIN_HELP_TEXT };
     case 'admin':
-      return {
-        title: 'Admin Console',
-        subtitle: 'Secure administrative access',
-        fields: [],
-        helpText: 'Admin-only access'
-      };
+      return { title: 'Admin Console', subtitle: 'Secure administrative access', fields: [], helpText: LOGIN_HELP_TEXT };
     default:
-      return {
-        title: 'Welcome to BioPay',
-        subtitle: 'Student Network Login',
-        fields: [],
-        helpText: 'Enter your institutional email'
-      };
+      return { title: 'Welcome to BioPay', subtitle: 'Student Network Login', fields: [], helpText: LOGIN_HELP_TEXT };
   }
 }
