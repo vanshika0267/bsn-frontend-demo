@@ -5,6 +5,7 @@ import { seniorConfig } from '../data/roleConfig/senior';
 import { recruiterConfig } from '../data/roleConfig/recruiter';
 import { collegeAdminConfig } from '../data/roleConfig/collegeAdmin';
 import { platformAdminConfig } from '../data/roleConfig/platformAdmin';
+import { facultyConfig } from '../data/roleConfig/faculty';
 
 const RoleContext = createContext();
 
@@ -23,6 +24,8 @@ export const RoleProvider = ({ children }) => {
         return collegeAdminConfig;
       case 'Platform Admin':
         return platformAdminConfig;
+      case 'Faculty':
+        return facultyConfig;
       default:
         return studentConfig;
     }
