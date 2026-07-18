@@ -20,9 +20,9 @@ const Checkbox = ({
         />
         
         {/* Custom Checkbox Design */}
-        <div className="mt-0.5 w-4.5 h-4.5 rounded border border-outline-variant bg-white flex items-center justify-center text-white peer-checked:bg-primary-container peer-checked:border-transparent transition-all duration-200 focus:outline-none">
+        <div className="mt-0.5 w-4.5 h-4.5 rounded border border-outline-variant bg-white dark:bg-surface-container-low flex items-center justify-center text-white peer-checked:bg-primary-container peer-checked:border-transparent peer-checked:[&>svg]:opacity-100 transition-all duration-200 focus:outline-none">
           <svg
-            className="w-3 h-3 fill-current opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
+            className="w-3 h-3 fill-current opacity-0 transition-opacity duration-200"
             viewBox="0 0 20 20"
           >
             <path d="M0 11l2-2 5 5L18 3l2 2L7 18z" />

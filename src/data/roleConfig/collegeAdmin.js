@@ -28,7 +28,8 @@ export const collegeAdminConfig = {
   settingsTabs: [
     { id: 'profile', name: 'Institution Info' },
     { id: 'verification-rules', name: 'Domain & Verification Setup' },
-    { id: 'faculty', name: 'Faculty Staff Accounts' }
+    { id: 'faculty', name: 'Faculty Staff Accounts' },
+    { id: 'appearance', name: 'Appearance Preferences' }
   ],
   allowedTabs: ['overview', 'student-analytics', 'verifications', 'placements'],
   recommendations: ['AI Accreditation Manual', 'Industry Alignment Strategy']

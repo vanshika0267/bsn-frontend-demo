@@ -29,7 +29,8 @@ export const recruiterConfig = {
   settingsTabs: [
     { id: 'profile', name: 'Recruiter Bio' },
     { id: 'company', name: 'Company Details' },
-    { id: 'hiring-filters', name: 'Smart Filtering Rules' }
+    { id: 'hiring-filters', name: 'Smart Filtering Rules' },
+    { id: 'appearance', name: 'Appearance Preferences' }
   ],
   allowedTabs: ['overview', 'candidate-search', 'job-postings', 'applications', 'hiring-analytics'],
   recommendations: ['Talent Sourcing Trends', 'Stitch AI Technical Evaluation Kit']

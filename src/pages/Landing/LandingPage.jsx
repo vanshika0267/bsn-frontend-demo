@@ -1,241 +1,436 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiArrowRight, FiActivity, FiBriefcase, FiUsers, FiBookOpen, FiAward } from 'react-icons/fi';
-import Button from '../../components/common/Button';
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, useInView } from 'framer-motion';
+import {
+  FiArrowRight,
+  FiCheck,
+  FiGithub,
+  FiUsers,
+  FiBriefcase,
+  FiAward,
+  FiTrendingUp,
+  FiMessageSquare,
+  FiShield,
+  FiStar,
+  FiCalendar,
+  FiMapPin,
+  FiGrid
+} from 'react-icons/fi';
+import LandingNavbar from './components/LandingNavbar';
+import LandingFooter from './components/LandingFooter';
+import FAQSection from './components/FAQSection';
+import RoleBenefitsTabs from './components/RoleBenefitsTabs';
 
-const LandingPage = () => {
-  const navigate = useNavigate();
+// Scroll-triggered counter helper
+function StatCounter({ value, duration = 1.5 }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const [count, setCount] = useState(0);
 
-  const features = [
-    {
-      icon: FiBookOpen,
-      title: "Academic Identity",
-      description: "A centralized home for your grades, verified skills, and academic uploads. Replaces traditional scattered PDFs."
-    },
-    {
-      icon: FiAward,
-      title: "Impact Ranking",
-      description: "Grow your Impact Score by contributing study notes and coding resources. Stand out on the leaderboard."
-    },
-    {
-      icon: FiBriefcase,
-      title: "Opportunities Arena",
-      description: "Direct application to hackathons, internships, fellowships, and challenges. Fully integrated profiles mean no double entries."
-    },
-    {
-      icon: FiUsers,
-      title: "Alumni & Peer Team Finder",
-      description: "Find co-founders for startup projects or developers for national hackathons with filters by skills and college."
-    }
-  ];
+  useEffect(() => {
+    if (!isInView) return;
+    let start = 0;
+    const end = parseInt(value.replace(/[^0-9]/g, ''));
+    if (start === end) return;
 
-  const stats = [
-    { value: "45,000+", label: "Active Students" },
-    { value: "320+", label: "Verified Universities" },
-    { value: "85,000+", label: "Resources Shared" },
-    { value: "1,200+", label: "Hackathons Listed" }
-  ];
+    const totalDuration = duration * 1000;
+    const steps = 30;
+    const stepTime = totalDuration / steps;
+    const increment = end / steps;
 
-  const testimonials = [
-    {
-      quote: "BSN completely transformed how I search for hackathon teammates. We found our frontend dev in 10 minutes and went on to win 1st place!",
-      author: "Sarah Connor",
-      college: "Stanford University",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100&h=100"
-    },
-    {
-      quote: "Being able to see verified skill badges alongside a student's GitHub repo and university uploads cuts our internship sourcing time by 60%.",
-      author: "David Vance",
-      college: "Senior Recruiter, Stripe",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100&h=100"
-    }
-  ];
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= end) {
+        setCount(end);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, stepTime);
 
+    return () => clearInterval(timer);
+  }, [isInView, value, duration]);
+
+  const suffix = value.replace(/[0-9]/g, '');
+  return <span ref={ref}>{count}{suffix}</span>;
+}
+
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-surface text-on-surface font-sans overflow-x-hidden">
-      {/* Sticky White Navbar */}
-      <nav className="sticky top-0 z-50 w-full bg-white border-b border-outline-variant px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center shadow-lg shadow-primary/20">
-            <span className="font-poppins font-extrabold text-white text-lg tracking-wider">B</span>
-          </div>
-          <span className="font-poppins font-bold text-xl tracking-tight text-on-surface">
-            BSN <span className="text-primary text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/10 ml-1">STUDENT</span>
-          </span>
-        </Link>
-        
-        {/* Nav Anchors */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-on-surface-variant">
-          <a href="#features" className="hover:text-on-surface transition-colors">Features</a>
-          <a href="#stats" className="hover:text-on-surface transition-colors">Impact</a>
-          <a href="#testimonials" className="hover:text-on-surface transition-colors">Reviews</a>
-        </div>
+    <div className="min-h-screen bg-background text-on-surface flex flex-col font-sans overflow-x-hidden selection:bg-primary/20 bg-grid-pattern relative bg-noise">
 
-        {/* Auth CTAs */}
-        <div className="flex items-center gap-3">
-          <Link to="/login" className="text-sm font-bold text-on-surface-variant hover:text-on-surface px-3 py-2 transition-colors">
-            Login
-          </Link>
-          <Button onClick={() => navigate('/signup')} variant="primary" size="sm">
-            Register
-          </Button>
-        </div>
-      </nav>
+      {/* Background Soft Blurred Blobs */}
+      <div className="absolute top-[10vh] left-[-10vw] w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] bg-primary/10 rounded-full blur-[100px] sm:blur-[130px] pointer-events-none z-0 animate-pulse-glow" />
+      <div className="absolute top-[40vh] right-[-10vw] w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-blue-500/10 rounded-full blur-[110px] sm:blur-[140px] pointer-events-none z-0 animate-pulse-glow" />
+      <div className="absolute bottom-[20vh] left-1/4 w-[400px] sm:w-[500px] h-[400px] sm:h-[500px] bg-indigo-500/5 rounded-full blur-[100px] sm:blur-[130px] pointer-events-none z-0 animate-pulse-glow" />
+
+      {/* Navbar */}
+      <LandingNavbar />
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-16 px-6 max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="space-y-4 max-w-3xl"
-        >
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-sm text-xs font-bold uppercase tracking-wider bg-[#eff6ff] text-[#1e40af] border border-[#bfdbfe]">
-            <FiActivity size={12} /> The New Academic Standard
-          </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight font-poppins text-on-surface leading-tight">
-            Build Your <span className="text-primary">Academic Identity</span>. Showcase Skills. Discover Opportunities.
-          </h1>
-          <p className="text-base sm:text-lg text-on-surface-variant leading-relaxed max-w-2xl mx-auto font-light">
-            An ecosystem combining professional networking, academic resources sharing, developer portfolio templates, and real opportunities. Dedicated to the Student Experience.
-          </p>
-        </motion.div>
+      <section className="relative min-h-[95vh] lg:min-h-screen flex items-center pt-32 pb-20 overflow-hidden z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full">
 
-        {/* Call to Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
-          className="flex flex-col sm:flex-row items-center gap-3.5 mt-4"
-        >
-          <Button onClick={() => navigate('/signup')} variant="primary" size="lg" className="w-full sm:w-auto gap-2">
-            Get Started Now <FiArrowRight size={16} />
-          </Button>
-          <Button onClick={() => navigate('/dashboard')} variant="secondary" size="lg" className="w-full sm:w-auto">
-            Explore Platform
-          </Button>
-        </motion.div>
+            {/* Left: Headline & Call To Actions */}
+            <div className="lg:col-span-6 flex flex-col items-start text-left space-y-8 max-w-[640px]">
 
-        {/* Dashboard Mockup Showcase */}
-        <motion.div
-          initial={{ opacity: 0, y: 30, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="w-full max-w-5xl rounded-xl border border-outline-variant bg-white p-3 mt-12 shadow-xl relative"
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=1000&h=450" 
-            alt="Dashboard mockup display" 
-            className="w-full rounded-lg object-cover border border-outline-variant filter brightness-95 shadow-lg"
-          />
-        </motion.div>
-      </section>
-
-      {/* Features Bento Grid */}
-      <section id="features" className="py-20 px-6 max-w-7xl mx-auto border-t border-outline-variant">
-        <div className="text-center max-w-xl mx-auto mb-14 space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-bold font-poppins text-on-surface">Fully Loaded Ecosystem</h2>
-          <p className="text-sm text-on-surface-variant leading-relaxed">
-            Engineered to highlight true student potential beyond standard dry text resumes.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6.5">
-          {features.map((feature, idx) => {
-            const Icon = feature.icon;
-            return (
+              {/* Premium Badge */}
               <motion.div
-                whileHover={{ y: -2 }}
-                key={idx}
-                className="bg-white p-6 sm:p-8 rounded-xl border border-outline-variant flex gap-5 items-start transition-all duration-300 hover:border-outline shadow-sm hover:shadow-md"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="text-emerald-500 dark:text-emerald-400 text-xs font-bold tracking-widest font-mono uppercase"
               >
-                <div className="p-3.5 rounded-lg bg-surface-container text-primary shrink-0 shadow-inner">
-                  <Icon size={22} />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold font-poppins text-on-surface">{feature.title}</h3>
-                  <p className="text-sm text-on-surface-variant leading-relaxed font-light">{feature.description}</p>
-                </div>
+                Built for campus-verified careers
               </motion.div>
-            );
-          })}
-        </div>
-      </section>
 
-      {/* Statistics Section */}
-      <section id="stats" className="py-16 bg-white border-y border-outline-variant px-6 text-center">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((stat, idx) => (
-            <div key={idx} className="space-y-1">
-              <span className="text-3xl sm:text-4xl font-extrabold font-poppins text-primary">{stat.value}</span>
-              <p className="text-xs text-on-surface-variant uppercase font-bold tracking-wider">{stat.label}</p>
+              {/* Main Headline */}
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="font-serif text-[42px] sm:text-[56px] lg:text-[68px] xl:text-[72px] text-slate-900 dark:text-white tracking-[-0.02em] leading-[1.08] font-normal"
+              >
+                Your portfolio, teams,<br />
+                and senior guides.<br />
+                <span className="bg-gradient-to-r from-[#10B981] to-[#34D399] bg-clip-text text-transparent block mt-2">
+                  Unified in BSN.
+                </span>
+              </motion.h1>
+
+              {/* Description */}
+              <motion.p
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                className="text-[15px] sm:text-[18px] text-on-surface-variant font-medium leading-[1.6] max-w-[540px] font-sans"
+              >
+                Build a trusted academic profile, collaborate on projects, sync metrics, and connect with senior guides—all in one place.
+              </motion.p>
+
+              {/* Call to Actions */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
+              >
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                  <Link
+                    to="/signup"
+                    className="w-full sm:w-auto h-[56px] px-[32px] rounded-full text-xs sm:text-sm font-bold bg-[#2563EB] hover:bg-[#1D4ED8] text-white transition-all flex items-center justify-center gap-2 border border-transparent shadow-[0_4px_25px_rgba(37,99,235,0.25)] relative overflow-hidden group cursor-pointer"
+                  >
+                    Get Started for Free
+                    <FiArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </motion.div>
+                <motion.a
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  href="#how-it-works"
+                  className="w-full sm:w-auto h-[56px] px-[32px] rounded-full text-xs sm:text-sm font-semibold bg-white/40 dark:bg-slate-900/40 border border-[#E2E8F0] dark:border-slate-800 text-on-surface hover:bg-slate-100/50 dark:hover:bg-slate-900/65 backdrop-blur-sm transition-all flex items-center justify-center cursor-pointer"
+                >
+                  Explore Platform
+                </motion.a>
+              </motion.div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center max-w-xl mx-auto mb-14 space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-bold font-poppins text-on-surface">Loved by Students & Recruiters</h2>
-          <p className="text-sm text-on-surface-variant leading-relaxed">
-            Real peer feedback showing how academic profiles accelerate opportunities.
-          </p>
-        </div>
+            {/* Right: Dashboard Illustration Mockup */}
+            <div className="lg:col-span-6 w-full flex items-center justify-center relative mt-16 lg:mt-0">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
+                transition={{ 
+                  opacity: { duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] },
+                  scale: { duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] },
+                  y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                }}
+                className="relative w-full max-w-[550px] min-h-[500px] flex items-center justify-center z-10"
+              >
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {testimonials.map((item, idx) => (
-            <div key={idx} className="bg-white p-6 sm:p-8 rounded-xl border border-outline-variant flex flex-col justify-between gap-6 relative shadow-sm hover:shadow-md">
-              <p className="text-sm text-on-surface italic leading-relaxed">
-                "{item.quote}"
-              </p>
-              <div className="flex items-center gap-3">
-                <img 
-                  src={item.avatar} 
-                  alt={item.author} 
-                  className="w-10 h-10 rounded-lg object-cover ring-2 ring-outline-variant"
-                />
-                <div>
-                  <h4 className="text-xs font-bold text-on-surface">{item.author}</h4>
-                  <p className="text-[10px] text-on-surface-variant font-medium">{item.college}</p>
+                {/* Premium Dashboard UI Mockup */}
+                <div className="w-full bg-white/25 dark:bg-slate-950/30 backdrop-blur-xl rounded-2xl border border-white/30 dark:border-slate-800/30 p-5 shadow-[0_30px_70px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.6)] space-y-4 relative overflow-hidden">
+
+                  {/* Top Bar Mockup */}
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200/30 dark:border-slate-800/40">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
+                    </div>
+                    <div className="text-[9px] font-mono text-on-surface-variant bg-slate-100/50 dark:bg-slate-900 px-3 py-0.5 rounded-md border border-slate-200/20 dark:border-slate-800/20">
+                      bsn.app/alex-rivera
+                    </div>
+                    <div className="w-6" />
+                  </div>
+
+                  {/* Dashboard Content Grid */}
+                  <div className="grid grid-cols-12 gap-3.5 text-left">
+
+                    {/* Left Grid Content */}
+                    <div className="col-span-12 sm:col-span-5 space-y-3">
+                      {/* Profile Widget */}
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3.5 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+                        <div className="relative w-10 h-10 rounded-lg bg-gradient-to-tr from-primary to-blue-400 flex items-center justify-center font-bold text-white text-xs select-none">
+                          AR
+                          <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 border border-white dark:border-slate-900 text-[6px] font-bold">✓</span>
+                        </div>
+                        <div className="mt-2.5">
+                          <h4 className="text-[11px] font-extrabold text-on-surface flex items-center gap-1">Alex Rivera</h4>
+                          <p className="text-[8px] text-on-surface-variant font-mono">BSN lvl 4 • MIT Student</p>
+                        </div>
+                      </div>
+
+                      {/* Portfolio Completion Gauge */}
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
+                        <span className="text-[8px] font-bold text-on-surface-variant uppercase tracking-wider font-mono">Portfolio Status</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-on-surface">92% Done</span>
+                          <div className="w-8 h-8 rounded-full border-2 border-primary/20 border-r-primary flex items-center justify-center text-[7px] font-mono text-primary font-bold">92%</div>
+                        </div>
+                      </div>
+
+                      {/* Skill Index */}
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
+                        <span className="text-[8px] font-bold text-on-surface-variant uppercase tracking-wider font-mono">Skill Index</span>
+                        <div className="space-y-1.5">
+                          <div>
+                            <div className="flex justify-between text-[8px] text-on-surface font-semibold mb-0.5">
+                              <span>React / Next.js</span>
+                              <span>85%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+                              <div className="bg-primary h-full w-[85%]" />
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex justify-between text-[8px] text-on-surface font-semibold mb-0.5">
+                              <span>UI Architecture</span>
+                              <span>75%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden">
+                              <div className="bg-primary h-full w-[75%]" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Grid Content */}
+                    <div className="col-span-12 sm:col-span-7 space-y-3">
+                      {/* Opportunities Internship Card */}
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3.5 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[7px] font-bold text-white px-2 py-0.5 bg-primary rounded-full">RECOMMENDED</span>
+                          <span className="text-[8px] font-bold text-emerald-500 font-mono">98% match</span>
+                        </div>
+                        <div className="space-y-0.5">
+                          <h4 className="text-[10px] font-bold text-on-surface">Software Engineering Intern</h4>
+                          <p className="text-[9px] text-on-surface-variant">Stripe • Remote / San Francisco</p>
+                        </div>
+                      </div>
+
+                      {/* Community Feed / Team Finder Widget */}
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3.5 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[8px] font-bold text-on-surface-variant uppercase tracking-wider font-mono">Team Finder</span>
+                          <span className="text-[8px] text-primary font-bold">Recruiting</span>
+                        </div>
+                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200/10 dark:border-slate-800/20">
+                          <p className="text-[9px] text-on-surface leading-snug font-medium">Looking for full-stack developers for Hackathon quest.</p>
+                          <div className="flex justify-between items-center mt-2 text-[8px]">
+                            <span className="text-on-surface-variant font-mono">2 slots remaining</span>
+                            <span className="text-primary font-bold">Apply →</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Mentor Chat/Card */}
+                      <div className="bg-white/35 dark:bg-slate-900/25 backdrop-blur-md p-3 rounded-xl border border-white/40 dark:border-slate-800/30 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[8px]">JS</div>
+                          <div className="leading-tight">
+                            <h5 className="text-[9px] font-bold text-on-surface">Mentor Session</h5>
+                            <p className="text-[7px] text-on-surface-variant">with Jiya Sharma (Stripe)</p>
+                          </div>
+                        </div>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">10:00 AM</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                {/* Floating Widgets */}
+                {/* 1. Verified Badge */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="hidden sm:flex absolute -top-4 -left-6 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 px-3.5 py-1.5 rounded-full shadow-lg items-center gap-1.5 select-none"
+                >
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 flex items-center justify-center text-[7px] text-white font-bold">✓</span>
+                  <span className="text-[9px] font-bold text-on-surface font-mono">Institutional Verified</span>
+                </motion.div>
+
+                {/* 2. Internship Notification */}
+                <motion.div
+                  animate={{ y: [0, 6, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                  className="hidden md:block absolute top-1/4 -right-12 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-3 rounded-xl shadow-lg text-left max-w-[170px] space-y-1"
+                >
+                  <div className="flex items-center justify-between text-[7px] font-mono">
+                    <span className="font-bold text-primary uppercase">Offer</span>
+                    <span className="text-on-surface-variant">1h ago</span>
+                  </div>
+                  <p className="text-[9px] font-bold text-on-surface leading-tight font-sans">Internship Offered: Frontend Dev at Stripe</p>
+                </motion.div>
+
+                {/* 3. Mentor Message */}
+                <motion.div
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+                  className="hidden sm:flex absolute -bottom-6 -right-2 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-3 rounded-xl shadow-lg text-left max-w-[180px] items-start gap-2"
+                >
+                  <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-extrabold text-[8px] mt-0.5">JS</div>
+                  <div className="space-y-0.5">
+                    <h6 className="text-[8px] font-bold text-on-surface">Jiya Sharma (Mentor)</h6>
+                    <p className="text-[8px] text-on-surface-variant leading-snug font-sans">Let\'s hop on a call to review your portfolio projects!</p>
+                  </div>
+                </motion.div>
+
+                {/* 4. GitHub Stats */}
+                <motion.div
+                  animate={{ y: [0, 5, 0] }}
+                  transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 1.2 }}
+                  className="hidden md:block absolute bottom-10 -left-12 z-20 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 p-2.5 rounded-xl shadow-lg text-left space-y-1.5"
+                >
+                  <div className="flex items-center gap-1.5 text-[9px] font-bold text-on-surface font-mono">
+                    <FiGithub className="text-primary" />
+                    <span>GitHub Synchronized</span>
+                  </div>
+                  <div className="flex gap-4 text-left">
+                    <div>
+                      <span className="text-[10px] font-extrabold text-on-surface block">250+</span>
+                      <span className="text-[7px] text-on-surface-variant font-mono uppercase">Commits</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-extrabold text-on-surface block">12</span>
+                      <span className="text-[7px] text-on-surface-variant font-mono uppercase">Projects</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+              </motion.div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Call to Action Banner Card */}
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="relative rounded-2xl bg-primary-container text-white overflow-hidden p-8 sm:p-12 text-center flex flex-col items-center justify-center gap-6 shadow-xl">
-          <h2 className="text-3xl sm:text-4xl font-extrabold font-poppins relative z-10 text-white">
-            Ready to Build Your Digital Identity?
-          </h2>
-          <p className="text-xs sm:text-sm text-white/80 max-w-md relative z-10 leading-relaxed">
-            Claim your student profile, upload your resources, connect with top alumni and apply to premium roles. Absolutely free for students.
-          </p>
-          <button 
-            onClick={() => navigate('/signup')} 
-            className="relative z-10 mt-2 px-8.5 py-3 rounded-lg bg-white text-primary hover:bg-surface-container font-semibold transition-colors duration-200"
-          >
-            Register Now
-          </button>
-        </div>
-      </section>
-
-      {/* Site Footer */}
-      <footer className="bg-white border-t border-outline-variant py-10 px-6 text-center text-xs text-on-surface-variant font-medium">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-white font-bold font-poppins">B</div>
-            <span className="font-bold text-on-surface">BSN Student Network</span>
           </div>
-          <p>© {new Date().getFullYear()} BSN. Built for student academic and professional networking.</p>
         </div>
-      </footer>
+
+        {/* Scroll indicator at bottom */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-10 pointer-events-none">
+          <span className="text-[9px] font-bold tracking-widest text-on-surface-variant uppercase font-mono">Scroll Down</span>
+          <div className="w-5 h-8 rounded-full border-2 border-on-surface-variant/30 flex justify-center p-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary scroll-indicator-wheel" />
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="pt-6 pb-6 md:pt-8 md:pb-8 relative z-10 scroll-mt-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-3xl mx-auto mb-20 space-y-4"
+          >
+            <h2 className="font-poppins font-extrabold text-3xl sm:text-4xl text-on-surface leading-tight tracking-tight">
+              From profile creation to career momentum in five clear steps.
+            </h2>
+            <p className="text-xs sm:text-sm text-on-surface-variant max-w-2xl mx-auto leading-relaxed font-sans">
+              Start quickly, build trust, discover opportunities and collaborate with peers under senior guidance.
+            </p>
+          </motion.div>
+
+          {/* Connected Timeline */}
+          <div className="max-w-2xl mx-auto relative pl-6 sm:pl-10 text-left">
+            {/* Timeline Vertical Path Line */}
+            <div className="absolute left-[15px] sm:left-[21px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-primary via-blue-500/50 to-transparent" />
+
+            <div className="space-y-12">
+              {[
+                {
+                  step: 'Step 1',
+                  title: 'Create Profile',
+                  description: 'Set up a polished academic identity with your skills, interests and goals. Silently detects your role for a tailored onboarding experience.'
+                },
+                {
+                  step: 'Step 2',
+                  title: 'Verify Identity',
+                  description: 'Connect your institutional college email to build a trust badge. Instantly verify credentials seen by mentors, peers, and recruiters.'
+                },
+                {
+                  step: 'Step 3',
+                  title: 'Find Opportunities',
+                  description: 'Browse internships, projects, resources and tech listings with low friction, high signal opportunity cards, and targeted major metrics.'
+                },
+                {
+                  step: 'Step 4',
+                  title: 'Build Portfolio',
+                  description: 'Sync your GitHub commits and sync portfolio performance metrics to keep your verified engineering progress visible.'
+                },
+                {
+                  step: 'Step 5',
+                  title: 'Connect with Mentors',
+                  description: 'Reach senior student guides and campus alumni for direct resume feedback, project reviews, and referral advice.'
+                }
+              ].map((step, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.5, delay: idx * 0.05 }}
+                  className="flex gap-6 items-start relative group"
+                >
+                  {/* Timeline Dot Indicator */}
+                  <div className="w-8 h-8 rounded-full border border-primary bg-background dark:bg-slate-950 flex items-center justify-center z-10 shadow-md group-hover:scale-115 transition-transform duration-300">
+                    <span className="text-[10px] font-extrabold text-primary font-mono">{idx + 1}</span>
+                  </div>
+
+                  {/* Content details */}
+                  <div className="space-y-1.5 pt-0.5 flex-1 bg-white/30 dark:bg-slate-900/10 hover:bg-white/50 dark:hover:bg-slate-900/35 border border-transparent hover:border-slate-200/40 dark:hover:border-slate-800/40 p-4 rounded-xl transition-all duration-300 backdrop-blur-sm">
+                    <span className="text-[9px] font-bold text-primary font-mono uppercase tracking-wider block">
+                      {step.step}
+                    </span>
+                    <h3 className="font-poppins font-bold text-base text-on-surface">
+                      {step.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed font-sans font-normal">
+                      {step.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Role Benefits Section */}
+      <RoleBenefitsTabs />
+
+
+      {/* FAQ Section */}
+      <FAQSection />
+
+
+
+      {/* Footer */}
+      <LandingFooter />
     </div>
   );
-};
-
-export default LandingPage;
+}

@@ -30,7 +30,8 @@ export const platformAdminConfig = {
   settingsTabs: [
     { id: 'profile', name: 'Admin Account' },
     { id: 'scoring-rules', name: 'Scoring Multipliers' },
-    { id: 'system-backups', name: 'Database Backups' }
+    { id: 'system-backups', name: 'Database Backups' },
+    { id: 'appearance', name: 'Appearance Preferences' }
   ],
   allowedTabs: ['overview', 'user-mgmt', 'college-mgmt', 'moderation', 'reports', 'sys-analytics'],
   recommendations: ['Database Tuning Guide', 'Security Headers OWASP checklist']

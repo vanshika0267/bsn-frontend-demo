@@ -8,6 +8,7 @@ import Button from '../../components/common/Button';
 import InputField from '../../components/common/InputField';
 import Checkbox from '../../components/common/Checkbox';
 import Select from '../../components/common/Select';
+import Badge from '../../components/common/Badge';
 
 const SettingsPage = () => {
   const { user, updateProfile, settings, updateSettings } = useApp();
