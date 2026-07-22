@@ -1,6 +1,6 @@
 import { 
   FiGrid, FiUser, FiBookOpen, FiAward, FiBriefcase, 
-  FiCompass, FiUsers, FiBell, FiSettings, FiStar 
+  FiCompass, FiUsers, FiBell, FiSettings, FiStar, FiMessageSquare 
 } from 'react-icons/fi';
 
 export const studentConfig = {
@@ -16,6 +16,7 @@ export const studentConfig = {
     { name: 'Skill Gap Finder', path: '/dashboard?tab=skill-gap', icon: FiCompass, tab: 'skill-gap' },
     { name: 'Seniors Connect', path: '/dashboard?tab=seniors', icon: FiUser, tab: 'seniors' },
     { name: 'Verified Reviews', path: '/dashboard?tab=reviews', icon: FiStar, tab: 'reviews' },
+    { name: 'Messages', path: '/dashboard?tab=chat', icon: FiMessageSquare, tab: 'chat' },
     { name: 'Notifications', path: '/notifications', icon: FiBell },
     { name: 'Settings', path: '/settings', icon: FiSettings },
   ],
@@ -36,6 +37,6 @@ export const studentConfig = {
     { id: 'privacy', name: 'Profile Privacy Options' },
     { id: 'appearance', name: 'Appearance Preferences' }
   ],
-  allowedTabs: ['overview', 'resources', 'upload', 'leaderboard', 'opportunities', 'learning-hub', 'team-finder', 'skill-gap', 'seniors', 'reviews'],
+  allowedTabs: ['overview', 'resources', 'upload', 'leaderboard', 'opportunities', 'learning-hub', 'team-finder', 'skill-gap', 'seniors', 'reviews', 'chat'],
   recommendations: ['Software Engineering Mastery', 'Java Development Essentials']
 };

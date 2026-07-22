@@ -21,6 +21,7 @@ import {
   collegeStudents, collegeVerifications, 
   platformUsers, platformSystemLogs 
 } from '../../data/roleMockData';
+import { myOpportunities, getApplicants } from '../../services/api';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import StatCard from '../../components/cards/StatCard';
 import ActivityCard from '../../components/cards/ActivityCard';
@@ -43,6 +44,7 @@ import TeamFinderTab from './tabs/TeamFinderTab';
 import SkillGapFinderTab from './tabs/SkillGapFinderTab';
 import SeniorsMentorshipTab from './tabs/SeniorsMentorshipTab';
 import AdminDashboardTab from './tabs/AdminDashboardTab';
+import ChatTab from './tabs/ChatTab';
 
 // New personalized role components
 import CandidateSearchTab from './tabs/CandidateSearchTab';
@@ -77,11 +79,39 @@ const DashboardPage = () => {
     }
   }, [currentTab, isAllowedTab, navigate]);
 
+  // Load real recruiter overview data (postings + applicants) when applicable.
+  useEffect(() => {
+    if (!(dashboardWidgets || []).includes('recruiter-kpi-stats')) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const postings = await myOpportunities();
+        let total = 0, review = 0, accepted = 0;
+        const recent = [];
+        for (const pst of postings) {
+          try {
+            const data = await getApplicants(pst.id);
+            for (const a of (data.applicants || [])) {
+              total += 1;
+              if (a.status === 'Applied' || a.status === 'Shortlisted') review += 1;
+              if (a.status === 'Accepted') accepted += 1;
+              recent.push({ id: a.application_id, candidateName: a.name, jobTitle: pst.title, status: a.status, applied_at: a.applied_at });
+            }
+          } catch { /* ignore per-posting */ }
+        }
+        recent.sort((x, y) => new Date(y.applied_at) - new Date(x.applied_at));
+        if (!cancelled) setRecOverview({ postings, totalApplicants: total, underReview: review, accepted, recent: recent.slice(0, 5) });
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [dashboardWidgets]);
+
   // Local States for Interactive Widgets
   const [leaderboard] = useState(initialLeaderboard);
   const [resources, setResources] = useState(initialLearningResources);
   const [teamPosts] = useState(initialTeamPosts);
   const [activities, setActivities] = useState(initialActivity);
+  const [recOverview, setRecOverview] = useState({ postings: [], totalApplicants: 0, underReview: 0, accepted: 0, recent: [] });
 
   // Upload Resource Modal state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -269,21 +299,21 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard 
                       title="Active Postings" 
-                      value="2 Listings" 
-                      subtitle="Stripe Checkout & Infra" 
+                      value={`${recOverview.postings.length} Listings`} 
+                      subtitle={`${recOverview.postings.filter(p => p.status === 'active').length} active`} 
                       icon={FiBriefcase} 
                       color="blue"
                     />
                     <StatCard 
                       title="Applications" 
-                      value="42 Candidates" 
-                      subtitle="14 under review" 
+                      value={`${recOverview.totalApplicants} Candidates`} 
+                      subtitle={`${recOverview.underReview} under review`} 
                       icon={FiUsers} 
                       color="purple"
                     />
                     <StatCard 
                       title="Hiring Conversion" 
-                      value="18.4%" 
+                      value={recOverview.totalApplicants ? `${Math.round((recOverview.accepted / recOverview.totalApplicants) * 100)}%` : '0%'} 
                       subtitle="Offers accepted" 
                       icon={FiTrendingUp} 
                       color="green"
@@ -456,7 +486,7 @@ const DashboardPage = () => {
                       <FiUsers className="text-primary" size={16} /> Recent Candidates Applied
                     </h3>
                     <div className="space-y-3.5">
-                      {recruiterApplications.map((app) => (
+                      {recOverview.recent.map((app) => (
                         <div key={app.id} className="flex items-center justify-between text-xs font-semibold border-b border-outline-variant pb-2.5 last:border-b-0 last:pb-0">
                           <div>
                             <p className="text-on-surface font-bold">{app.candidateName}</p>
@@ -599,10 +629,10 @@ const DashboardPage = () => {
                       <FiBriefcase className="text-primary" size={16} /> Active Listings
                     </h3>
                     <div className="space-y-3">
-                      {recruiterJobPostings.map((job) => (
+                      {recOverview.postings.map((job) => (
                         <div key={job.id} className="p-3 bg-surface rounded-lg border border-outline-variant">
                           <h4 className="text-xs font-bold text-on-surface">{job.title}</h4>
-                          <p className="text-[10px] text-on-surface-variant mt-0.5 font-semibold">{job.applicantsCount} Applicants</p>
+                          <p className="text-[10px] text-on-surface-variant mt-0.5 font-semibold">{job.applicant_count} Applicants</p>
                         </div>
                       ))}
                     </div>
@@ -959,6 +989,17 @@ const DashboardPage = () => {
               transition={{ duration: 0.2 }}
             >
               <SystemAnalyticsTab />
+            </motion.div>
+          )}
+          {currentTab === 'chat' && (
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChatTab />
             </motion.div>
           )}
         </AnimatePresence>

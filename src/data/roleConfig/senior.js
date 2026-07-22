@@ -12,6 +12,7 @@ export const seniorConfig = {
     { name: 'Student Q&A', path: '/dashboard?tab=questions', icon: FiMessageSquare, tab: 'questions' },
     { name: 'Guidance Resources', path: '/dashboard?tab=resources', icon: FiBookOpen, tab: 'resources' },
     { name: 'Verified Reviews', path: '/dashboard?tab=reviews', icon: FiStar, tab: 'reviews' },
+    { name: 'Messages', path: '/dashboard?tab=chat', icon: FiMessageSquare, tab: 'chat' },
     { name: 'Notifications', path: '/notifications', icon: FiBell },
     { name: 'Settings', path: '/settings', icon: FiSettings },
   ],
@@ -32,6 +33,6 @@ export const seniorConfig = {
     { id: 'notifications', name: 'Alumni Alerts' },
     { id: 'appearance', name: 'Appearance Preferences' }
   ],
-  allowedTabs: ['overview', 'mentorship-requests', 'questions', 'resources', 'upload', 'reviews'],
+  allowedTabs: ['overview', 'mentorship-requests', 'questions', 'resources', 'upload', 'reviews', 'chat'],
   recommendations: ['Vetted Mock Interview Guide', 'System Architecture Best Practices']
 };

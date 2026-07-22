@@ -1,6 +1,6 @@
 import { 
   FiGrid, FiUser, FiSearch, FiBriefcase, FiLayers, FiTrendingUp, 
-  FiBell, FiSettings 
+  FiBell, FiSettings, FiMessageSquare
 } from 'react-icons/fi';
 
 export const recruiterConfig = {
@@ -12,6 +12,7 @@ export const recruiterConfig = {
     { name: 'Job Postings', path: '/dashboard?tab=job-postings', icon: FiBriefcase, tab: 'job-postings' },
     { name: 'Applications Manager', path: '/dashboard?tab=applications', icon: FiLayers, tab: 'applications' },
     { name: 'Hiring Analytics', path: '/dashboard?tab=hiring-analytics', icon: FiTrendingUp, tab: 'hiring-analytics' },
+    { name: 'Messages', path: '/dashboard?tab=chat', icon: FiMessageSquare, tab: 'chat' },
     { name: 'Notifications', path: '/notifications', icon: FiBell },
     { name: 'Settings', path: '/settings', icon: FiSettings },
   ],
@@ -32,6 +33,6 @@ export const recruiterConfig = {
     { id: 'hiring-filters', name: 'Smart Filtering Rules' },
     { id: 'appearance', name: 'Appearance Preferences' }
   ],
-  allowedTabs: ['overview', 'candidate-search', 'job-postings', 'applications', 'hiring-analytics'],
+  allowedTabs: ['overview', 'candidate-search', 'job-postings', 'applications', 'hiring-analytics', 'chat'],
   recommendations: ['Talent Sourcing Trends', 'Stitch AI Technical Evaluation Kit']
 };
