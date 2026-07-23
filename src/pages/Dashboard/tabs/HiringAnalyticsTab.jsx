@@ -1,69 +1,91 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import StatCard from '../../../components/cards/StatCard';
 import Card from '../../../components/common/Card';
-import { FiTrendingUp, FiUserCheck, FiBriefcase, FiUsers } from 'react-icons/fi';
+import Badge from '../../../components/common/Badge';
+import { myOpportunities } from '../../../services/api';
+import { FiBriefcase, FiUsers, FiCheckCircle, FiXCircle, FiLoader, FiAlertCircle, FiInbox } from 'react-icons/fi';
 
 const HiringAnalyticsTab = () => {
-  const metrics = [
-    { title: 'Total Sourced', value: '142', change: '+24% this month', icon: FiUsers },
-    { title: 'Interview Conversion', value: '18.4%', change: '+2.1% improvement', icon: FiTrendingUp },
-    { title: 'Offer Acceptance', value: '92%', change: 'Highly Competitive', icon: FiUserCheck },
-    { title: 'Avg Time-to-Hire', value: '14 Days', change: '5 days faster', icon: FiBriefcase }
-  ];
+  const [postings, setPostings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const funnel = [
-    { stage: 'Applications Received', count: 142, pct: 100 },
-    { stage: 'Vetted Project Score Checks', count: 96, pct: 67 },
-    { stage: 'Initial Interviews', count: 48, pct: 33 },
-    { stage: 'Technical Code Pairings', count: 18, pct: 12 },
-    { stage: 'Offers Extended', count: 6, pct: 4 }
-  ];
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError('');
+    myOpportunities()
+      .then((data) => { if (active) setPostings(Array.isArray(data) ? data : []); })
+      .catch((e) => active && setError(e.message || 'Failed to load your postings.'))
+      .finally(() => active && setLoading(false));
+    return () => { active = false; };
+  }, []);
+
+  const totalPostings = postings.length;
+  const totalApplicants = postings.reduce((sum, p) => sum + (p.applicant_count || 0), 0);
+  const activeCount = postings.filter((p) => p.status === 'active').length;
+  const closedCount = totalPostings - activeCount;
+
+  const byCategory = postings.reduce((acc, p) => {
+    const key = (p.category || 'other');
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const categoryEntries = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-on-surface">Hiring Analytics</h2>
-        <p className="text-xs text-on-surface-variant">Measure recruitment velocities, conversion funnels, and verification score correlation index.</p>
+        <p className="text-xs text-on-surface-variant">A snapshot of your postings and applicant volume, computed from your live job data.</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {metrics.map((m, idx) => {
-          const Icon = m.icon;
-          return (
-            <Card key={idx} className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block mb-1">{m.title}</span>
-                <h3 className="text-2xl font-black text-on-surface font-poppins">{m.value}</h3>
-                <span className="text-[10px] text-primary font-semibold mt-1 block">{m.change}</span>
-              </div>
-              <div className="p-2.5 bg-primary/10 rounded-lg text-primary">
-                <Icon size={18} />
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Funnel chart using tailwind flex/widths */}
-      <Card>
-        <h3 className="text-sm font-bold text-on-surface mb-5">Hiring Funnel Conversion Efficiency</h3>
-        <div className="space-y-4">
-          {funnel.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-4">
-              <span className="w-44 text-xs font-bold text-on-surface-variant shrink-0">{item.stage}</span>
-              <div className="flex-1 bg-surface-container rounded-lg h-7 overflow-hidden relative">
-                <div 
-                  className="bg-primary-container h-full rounded-lg transition-all duration-500"
-                  style={{ width: `${item.pct}%` }}
-                ></div>
-                <span className="absolute inset-y-0 left-3 flex items-center text-[10px] font-bold text-white">
-                  {item.count} Candidates ({item.pct}%)
-                </span>
-              </div>
-            </div>
-          ))}
+      {loading && (
+        <div className="flex items-center justify-center gap-2 py-16 text-on-surface-variant">
+          <FiLoader className="animate-spin" size={18} />
+          <span className="text-sm font-semibold">Loading your hiring analytics…</span>
         </div>
-      </Card>
+      )}
+
+      {!loading && error && (
+        <div className="flex items-center gap-2 p-4 rounded-xl bg-[#fef2f2] border border-[#fca5a5] text-[#991b1b]">
+          <FiAlertCircle size={18} />
+          <span className="text-sm font-semibold">{error}</span>
+        </div>
+      )}
+
+      {!loading && !error && totalPostings === 0 && (
+        <div className="flex flex-col items-center justify-center text-center p-10 bg-white border border-dashed border-outline-variant rounded-xl">
+          <FiInbox size={28} className="text-on-surface-variant mb-3" />
+          <h3 className="text-base font-semibold text-on-surface mb-1">No postings yet</h3>
+          <p className="text-xs text-on-surface-variant max-w-sm">Analytics will appear here once you create job postings and candidates start applying.</p>
+        </div>
+      )}
+
+      {!loading && !error && totalPostings > 0 && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <StatCard title="Total Postings" value={totalPostings} icon={FiBriefcase} color="blue" />
+            <StatCard title="Total Applicants" value={totalApplicants} icon={FiUsers} color="indigo" />
+            <StatCard title="Active Postings" value={activeCount} icon={FiCheckCircle} color="green" />
+            <StatCard title="Closed Postings" value={closedCount} icon={FiXCircle} color="orange" />
+          </div>
+
+          <Card>
+            <h3 className="text-sm font-bold text-on-surface mb-4">Postings by Category</h3>
+            <div className="space-y-3">
+              {categoryEntries.map(([cat, count]) => (
+                <div key={cat} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="primary">{String(cat).replace('_', ' ')}</Badge>
+                  </div>
+                  <span className="text-sm font-bold text-on-surface">{count}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </>
+      )}
     </div>
   );
 };

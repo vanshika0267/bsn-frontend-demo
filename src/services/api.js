@@ -169,6 +169,8 @@ export const answerQuestion = (qid, seniorId, answer) => req("POST", `/seniors/q
 
 // Skill gap + teams
 export const skillGap = (userId, targetRole) => req("POST", "/skill-gap", { user_id: userId, target_role: targetRole });
+export const listTeams = () => req("GET", "/teams");
+export const myTeams = () => req("GET", "/teams/mine");
 export const createTeam = (teamName, requiredSkills) => req("POST", "/teams", { team_name: teamName, required_skills: requiredSkills });
 export const joinTeam = (teamId) => req("POST", `/teams/${teamId}/join`);
 export const getTeamMembers = (teamId) => req("GET", `/teams/${teamId}/members`);

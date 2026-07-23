@@ -1,58 +1,76 @@
-import React from 'react';
-import Card from '../../../components/common/Card';
-import { FiCpu, FiDatabase, FiHardDrive, FiActivity } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import StatCard from '../../../components/cards/StatCard';
+import { adminStats } from '../../../services/api';
+import {
+  FiUsers, FiUserCheck, FiUserX, FiUserPlus, FiBookOpen,
+  FiClock, FiBriefcase, FiShield, FiLoader, FiAlertCircle
+} from 'react-icons/fi';
 
 const SystemAnalyticsTab = () => {
-  const diagnostics = [
-    { name: 'API Server Response (FastAPI)', value: '38ms', status: 'Optimal', icon: FiActivity, color: 'text-green-600 bg-green-50' },
-    { name: 'Database Latency (PostgreSQL)', value: '4.2ms', status: 'Optimal', icon: FiDatabase, color: 'text-green-600 bg-green-50' },
-    { name: 'CPU Utilization (AWS EC2)', value: '14.8%', status: 'Low load', icon: FiCpu, color: 'text-green-600 bg-green-50' },
-    { name: 'Object Storage Capacity', value: '412.8 GB', status: '12% Used', icon: FiHardDrive, color: 'text-blue-600 bg-blue-50' }
-  ];
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError('');
+    adminStats()
+      .then((data) => { if (active) setStats(data); })
+      .catch((e) => active && setError(e.message || 'Failed to load platform statistics.'))
+      .finally(() => active && setLoading(false));
+    return () => { active = false; };
+  }, []);
+
+  const roles = (stats && stats.roles) || {};
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-on-surface">Platform Infrastructure Analytics</h2>
-        <p className="text-xs text-on-surface-variant">Real-time status tracking of container load, PostgreSQL latency indices, and AWS instance health.</p>
+        <p className="text-xs text-on-surface-variant">Live usage metrics across users, resources, and opportunities pulled from the platform database.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {diagnostics.map((diag, idx) => {
-          const Icon = diag.icon;
-          return (
-            <Card key={idx} className="flex items-start justify-between">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-on-surface-variant block mb-1">{diag.name}</span>
-                <h3 className="text-2xl font-black text-on-surface font-poppins">{diag.value}</h3>
-                <span className="text-[10px] text-green-600 font-semibold mt-1 block">{diag.status}</span>
-              </div>
-              <div className={`p-2.5 rounded-lg ${diag.color}`}>
-                <Icon size={18} />
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+      {loading && (
+        <div className="flex items-center justify-center gap-2 py-16 text-on-surface-variant">
+          <FiLoader className="animate-spin" size={18} />
+          <span className="text-sm font-semibold">Loading platform statistics…</span>
+        </div>
+      )}
 
-      {/* Network Traffic Simulation */}
-      <Card>
-        <h3 className="text-sm font-bold text-on-surface mb-5">Platform Traffic & Load Volume</h3>
-        <div className="flex items-end justify-between h-48 pt-6 border-b border-outline-variant px-4">
-          <div className="w-8 bg-primary/20 hover:bg-primary rounded-t h-12" title="Monday: 21k reqs"></div>
-          <div className="w-8 bg-primary/20 hover:bg-primary rounded-t h-20" title="Tuesday: 35k reqs"></div>
-          <div className="w-8 bg-primary/20 hover:bg-primary rounded-t h-32" title="Wednesday: 54k reqs"></div>
-          <div className="w-8 bg-primary/20 hover:bg-primary rounded-t h-28" title="Thursday: 48k reqs"></div>
-          <div className="w-8 bg-primary hover:bg-primary/95 rounded-t h-40" title="Friday (Active): 72k reqs"></div>
+      {!loading && error && (
+        <div className="flex items-center gap-2 p-4 rounded-xl bg-[#fef2f2] border border-[#fca5a5] text-[#991b1b]">
+          <FiAlertCircle size={18} />
+          <span className="text-sm font-semibold">{error}</span>
         </div>
-        <div className="flex items-center justify-between text-[10px] font-bold text-on-surface-variant pt-3 px-4">
-          <span>MON</span>
-          <span>TUE</span>
-          <span>WED</span>
-          <span>THU</span>
-          <span>FRI (TODAY)</span>
-        </div>
-      </Card>
+      )}
+
+      {!loading && !error && stats && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <StatCard title="Total Users" value={stats.total_users ?? 0} icon={FiUsers} color="blue" />
+            <StatCard title="Verified Users" value={stats.verified_users ?? 0} icon={FiUserCheck} color="green" />
+            <StatCard title="Unverified Users" value={stats.unverified_users ?? 0} icon={FiUserX} color="orange" />
+            <StatCard title="Total Resources" value={stats.total_resources ?? 0} icon={FiBookOpen} color="purple" />
+            <StatCard title="Resources Pending Review" value={stats.resources_pending_review ?? 0} icon={FiClock} color="orange" />
+            <StatCard title="Total Opportunities" value={stats.total_opportunities ?? 0} icon={FiBriefcase} color="indigo" />
+            <StatCard title="New Users (7 days)" value={stats.new_users_last_7_days ?? 0} icon={FiUserPlus} color="green" />
+            <StatCard title="New Users (30 days)" value={stats.new_users_last_30_days ?? 0} icon={FiUserPlus} color="blue" />
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-on-surface mb-4 flex items-center gap-2">
+              <FiShield size={16} className="text-primary" /> Users by Role
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <StatCard title="Students" value={roles.student ?? 0} icon={FiUsers} color="blue" />
+              <StatCard title="Recruiters" value={roles.recruiter ?? 0} icon={FiUsers} color="indigo" />
+              <StatCard title="Faculty" value={roles.faculty ?? 0} icon={FiUsers} color="purple" />
+              <StatCard title="Admins" value={roles.admin ?? 0} icon={FiUsers} color="green" />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
