@@ -5,7 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = ({ onMenuClick }) => {
-  const { user, logout, notifications, searchQuery, setSearchQuery, settings, updateSettings } = useApp();
+  const { user, userRole, logout, notifications, searchQuery, setSearchQuery, settings, updateSettings } = useApp();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
 
@@ -31,7 +31,7 @@ const Navbar = ({ onMenuClick }) => {
             <span className="font-poppins font-extrabold text-white text-lg tracking-wider">B</span>
           </div>
           <span className="font-poppins font-bold text-xl tracking-tight text-on-surface hidden sm:block">
-            BSN <span className="text-primary text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/10 ml-1">STUDENT</span>
+            BSN <span className="text-primary text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/10 ml-1 uppercase">{userRole || user?.role || 'Student'}</span>
           </span>
         </Link>
       </div>

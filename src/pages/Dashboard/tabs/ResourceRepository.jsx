@@ -14,6 +14,9 @@ import {
   listResourceRequests,
   createResourceRequest,
   upvoteResourceRequest,
+  myResources,
+  uploadResource,
+  fulfillResourceRequest,
 } from '../../../services/api';
 import {
   FiHeart,
@@ -31,11 +34,13 @@ import {
   FiLoader,
   FiInbox,
   FiHelpCircle,
+  FiUpload,
+  FiFolder,
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
 const ResourceRepository = () => {
-  const { user } = useApp();
+  const { user, userRole } = useApp();
   const navigate = useNavigate();
 
   // ---- Browse resources state ----
@@ -58,8 +63,20 @@ const ResourceRepository = () => {
   const [reqTitle, setReqTitle] = useState('');
   const [reqSubject, setReqSubject] = useState('');
   const [reqDesc, setReqDesc] = useState('');
+  const [reqType, setReqType] = useState('Notes');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // ---- Fulfill requests state ----
+  const [fulfillingRequest, setFulfillingRequest] = useState(null);
+  const [fulfillMethod, setFulfillMethod] = useState('upload'); // 'upload' or 'select'
+  const [myUploadedResources, setMyUploadedResources] = useState([]);
+  const [selectedResourceId, setSelectedResourceId] = useState('');
+  const [fulfillFile, setFulfillFile] = useState(null);
+  const [fulfillTitle, setFulfillTitle] = useState('');
+  const [fulfillDesc, setFulfillDesc] = useState('');
+  const [fulfilling, setFulfilling] = useState(false);
+  const [fulfillError, setFulfillError] = useState('');
 
   const categories = [
     'All',
@@ -153,6 +170,21 @@ const ResourceRepository = () => {
     }
   };
 
+  const fetchMyResources = useCallback(async () => {
+    try {
+      const data = await myResources();
+      setMyUploadedResources(data?.results || data || []);
+    } catch (e) {
+      console.error("Failed to load user's resources", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (fulfillingRequest && fulfillMethod === 'select') {
+      fetchMyResources();
+    }
+  }, [fulfillingRequest, fulfillMethod, fetchMyResources]);
+
   const handleCreateRequest = async (e) => {
     e.preventDefault();
     if (!reqTitle.trim() || !reqSubject.trim()) {
@@ -166,16 +198,67 @@ const ResourceRepository = () => {
         title: reqTitle.trim(),
         subject: reqSubject.trim(),
         description: reqDesc.trim(),
+        type: reqType,
       });
       setShowReqModal(false);
       setReqTitle('');
       setReqSubject('');
       setReqDesc('');
+      setReqType('Notes');
       fetchRequests();
     } catch (err) {
       setFormError(err.message || 'Could not submit request.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleFulfillSubmit = async (e) => {
+    e.preventDefault();
+    setFulfilling(true);
+    setFulfillError('');
+    try {
+      let resId = selectedResourceId;
+      if (fulfillMethod === 'upload') {
+        if (!fulfillFile) {
+          throw new Error('Please select a file to upload.');
+        }
+        if (!fulfillTitle.trim()) {
+          throw new Error('Please enter a title for the resource.');
+        }
+        // Upload resource
+        const uploaded = await uploadResource({
+          title: fulfillTitle.trim(),
+          subject: fulfillingRequest.subject,
+          type: fulfillingRequest.type || 'Notes',
+          description: fulfillDesc.trim() || `Fulfilling request: ${fulfillingRequest.title}`,
+          file: fulfillFile
+        });
+        resId = uploaded?.id;
+        if (!resId) {
+          throw new Error('Failed to retrieve uploaded resource ID.');
+        }
+      } else {
+        if (!resId) {
+          throw new Error('Please select one of your existing resources.');
+        }
+      }
+
+      // Fulfill request
+      await fulfillResourceRequest(fulfillingRequest.id, resId);
+      
+      // Clean up and refresh
+      setFulfillingRequest(null);
+      setFulfillFile(null);
+      setFulfillTitle('');
+      setFulfillDesc('');
+      setSelectedResourceId('');
+      fetchRequests();
+      fetchResources();
+    } catch (err) {
+      setFulfillError(err.message || 'Failed to fulfill request.');
+    } finally {
+      setFulfilling(false);
     }
   };
 
@@ -397,77 +480,110 @@ const ResourceRepository = () => {
       )}
 
       {/* ================= Contribute: Resource Requests ================= */}
-      <div className="pt-4 border-t border-outline-variant space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold font-poppins text-on-surface flex items-center gap-2">
-              <FiHelpCircle className="text-primary" size={18} /> Contribute
-            </h2>
-            <p className="text-xs text-on-surface-variant">Open resource requests from the community. Upvote what you need or ask for something new.</p>
+      {(userRole === 'Student' || userRole === 'Student + Senior') && (
+        <div className="pt-4 border-t border-outline-variant space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold font-poppins text-on-surface flex items-center gap-2">
+                <FiHelpCircle className="text-primary" size={18} /> Contribute
+              </h2>
+              <p className="text-xs text-on-surface-variant">Open resource requests from the community. Upvote what you need or help fulfill them.</p>
+            </div>
+            <Button
+              onClick={() => { setFormError(''); setShowReqModal(true); }}
+              variant="secondary"
+              size="sm"
+              className="gap-2 shrink-0"
+            >
+              <FiPlus size={15} /> Request a Resource
+            </Button>
           </div>
-          <Button
-            onClick={() => { setFormError(''); setShowReqModal(true); }}
-            variant="secondary"
-            size="sm"
-            className="gap-2 shrink-0"
-          >
-            <FiPlus size={15} /> Request a Resource
-          </Button>
-        </div>
 
-        {reqError && (
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-[#fef2f2] border border-[#fca5a5] text-[#991b1b] text-xs font-medium">
-            <FiAlertCircle size={15} className="shrink-0 mt-0.5" />
-            <span className="flex-1">{reqError}</span>
-            <button onClick={fetchRequests} className="font-bold underline shrink-0">Retry</button>
-          </div>
-        )}
+          {reqError && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-[#fef2f2] border border-[#fca5a5] text-[#991b1b] text-xs font-medium">
+              <FiAlertCircle size={15} className="shrink-0 mt-0.5" />
+              <span className="flex-1">{reqError}</span>
+              <button onClick={fetchRequests} className="font-bold underline shrink-0">Retry</button>
+            </div>
+          )}
 
-        {reqLoading ? (
-          <div className="flex flex-col items-center justify-center py-10 text-on-surface-variant">
-            <FiLoader size={24} className="animate-spin text-primary" />
-            <p className="text-xs font-semibold mt-3">Loading requests...</p>
-          </div>
-        ) : requests.length === 0 ? (
-          <EmptyState
-            icon={FiHelpCircle}
-            title="No open requests"
-            description="Be the first to request a study resource the community can fulfil."
-            actionText="Request a Resource"
-            onActionClick={() => { setFormError(''); setShowReqModal(true); }}
-          />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {requests.map((rq) => (
-              <Card key={rq.id} className="flex items-start justify-between gap-3 bg-white">
-                <div className="space-y-1.5">
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-wide">{rq.subject}</span>
-                  <h3 className="text-sm font-extrabold text-on-surface leading-snug">{rq.title}</h3>
-                  {rq.description && (
-                    <p className="text-xs text-on-surface-variant font-light leading-relaxed line-clamp-2">{rq.description}</p>
-                  )}
-                  <div className="flex items-center gap-2 pt-1">
-                    <Badge variant="warning">{rq.status || 'open'}</Badge>
-                    <span className="text-[10px] text-on-surface-variant">{fmtDate(rq.created_at)}</span>
+          {reqLoading ? (
+            <div className="flex flex-col items-center justify-center py-10 text-on-surface-variant">
+              <FiLoader size={24} className="animate-spin text-primary" />
+              <p className="text-xs font-semibold mt-3">Loading requests...</p>
+            </div>
+          ) : requests.length === 0 ? (
+            <EmptyState
+              icon={FiHelpCircle}
+              title="No open requests"
+              description="Be the first to request a study resource the community can fulfil."
+              actionText="Request a Resource"
+              onActionClick={() => { setFormError(''); setShowReqModal(true); }}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {requests.map((rq) => (
+                <Card key={rq.id} className="flex flex-col justify-between gap-3 bg-white">
+                  <div className="space-y-1.5 w-full">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-wide">{rq.subject}</span>
+                      {rq.type && (
+                        <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5">
+                          {rq.type}
+                        </Badge>
+                      )}
+                    </div>
+                    <h3 className="text-sm font-extrabold text-on-surface leading-snug">{rq.title}</h3>
+                    {rq.description && (
+                      <p className="text-xs text-on-surface-variant font-light leading-relaxed line-clamp-2">{rq.description}</p>
+                    )}
                   </div>
-                </div>
-                <button
-                  onClick={() => handleUpvoteRequest(rq.id)}
-                  className={`flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all shrink-0 ${
-                    rq.upvoted
-                      ? 'bg-rose-50 text-error border-error/20'
-                      : 'bg-transparent text-on-surface-variant border-outline-variant hover:border-outline hover:text-error'
-                  }`}
-                  title="Upvote request"
-                >
-                  <FiHeart className={rq.upvoted ? 'fill-current text-error' : ''} size={14} />
-                  <span>{rq.upvotes || 0}</span>
-                </button>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-805 flex items-center justify-between mt-auto w-full">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={rq.status === 'fulfilled' ? 'success' : 'warning'}>
+                        {rq.status || 'open'}
+                      </Badge>
+                      <span className="text-[10px] text-on-surface-variant">{fmtDate(rq.created_at)}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleUpvoteRequest(rq.id)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-xs font-bold transition-all ${
+                          rq.upvoted
+                            ? 'bg-rose-50 text-error border-error/20'
+                            : 'bg-transparent text-on-surface-variant border-outline-variant hover:border-outline hover:text-error'
+                        }`}
+                        title="Upvote request"
+                      >
+                        <FiHeart className={rq.upvoted ? 'fill-current text-error' : ''} size={12} />
+                        <span>{rq.upvotes || 0}</span>
+                      </button>
+
+                      {rq.status !== 'fulfilled' && (
+                        <button
+                          onClick={() => {
+                            setFulfillingRequest(rq);
+                            setFulfillTitle(`Fulfill: ${rq.title}`);
+                            setFulfillError('');
+                            setFulfillMethod('upload');
+                            setFulfillFile(null);
+                            setSelectedResourceId('');
+                          }}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all shadow-sm"
+                        >
+                          <FiUpload size={12} />
+                          <span>Fulfill</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Request a Resource Modal */}
       <Modal
@@ -493,6 +609,22 @@ const ResourceRepository = () => {
             required
             id="req-subject"
           />
+          
+          <div className="space-y-1.5 text-left">
+            <label htmlFor="req-type" className="text-xs font-bold text-on-surface">Resource Type</label>
+            <select
+              id="req-type"
+              value={reqType}
+              onChange={(e) => setReqType(e.target.value)}
+              className="w-full p-2.5 border border-outline-variant rounded-lg text-sm bg-white focus:outline-none focus:border-primary font-sans"
+            >
+              <option value="Notes">Notes</option>
+              <option value="Assignments">Assignments</option>
+              <option value="PPTs">PPTs</option>
+              <option value="Study Material">Study Material</option>
+            </select>
+          </div>
+
           <div className="space-y-1.5 text-left">
             <label htmlFor="req-desc" className="text-xs font-bold text-on-surface">Description</label>
             <textarea
@@ -522,6 +654,121 @@ const ResourceRepository = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Fulfill Resource Request Modal */}
+      {fulfillingRequest && (
+        <Modal
+          isOpen={!!fulfillingRequest}
+          onClose={() => setFulfillingRequest(null)}
+          title="Fulfill Resource Request"
+          size="sm"
+        >
+          <form onSubmit={handleFulfillSubmit} className="space-y-4">
+            <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-1">
+              <p className="text-[10px] uppercase font-bold text-primary">{fulfillingRequest.subject}</p>
+              <h4 className="text-xs font-extrabold text-on-surface">{fulfillingRequest.title}</h4>
+              <p className="text-[11px] text-on-surface-variant">{fulfillingRequest.description}</p>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setFulfillMethod('upload')}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                  fulfillMethod === 'upload'
+                    ? 'bg-primary text-white border-primary shadow-sm'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <FiUpload size={14} /> Upload New
+              </button>
+              <button
+                type="button"
+                onClick={() => setFulfillMethod('select')}
+                className={`flex-1 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                  fulfillMethod === 'select'
+                    ? 'bg-primary text-white border-primary shadow-sm'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <FiFolder size={14} /> Select Existing
+              </button>
+            </div>
+
+            {fulfillMethod === 'upload' ? (
+              <div className="space-y-3 pt-1">
+                <InputField
+                  label="Resource Title"
+                  placeholder="e.g. Completed Solutions or Chapter Notes"
+                  value={fulfillTitle}
+                  onChange={(e) => setFulfillTitle(e.target.value)}
+                  required
+                />
+                
+                <div className="space-y-1.5 text-left">
+                  <label className="text-xs font-bold text-on-surface">Resource File</label>
+                  <input
+                    type="file"
+                    onChange={(e) => setFulfillFile(e.target.files[0])}
+                    required
+                    className="w-full text-xs text-on-surface-variant file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:opacity-90 cursor-pointer"
+                  />
+                </div>
+
+                <div className="space-y-1.5 text-left">
+                  <label className="text-xs font-bold text-on-surface">Description (Optional)</label>
+                  <textarea
+                    value={fulfillDesc}
+                    onChange={(e) => setFulfillDesc(e.target.value)}
+                    placeholder="Provide additional details about this file..."
+                    className="w-full h-20 p-2.5 border border-outline-variant rounded-lg text-xs bg-white focus:outline-none focus:border-primary font-sans"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 pt-1 text-left">
+                <label className="text-xs font-bold text-on-surface">Choose from your resources</label>
+                {myUploadedResources.length === 0 ? (
+                  <div className="p-4 border border-dashed border-outline-variant rounded-lg text-center text-xs text-on-surface-variant">
+                    You haven't uploaded any resources yet. Use 'Upload New' above instead.
+                  </div>
+                ) : (
+                  <select
+                    value={selectedResourceId}
+                    onChange={(e) => setSelectedResourceId(e.target.value)}
+                    required
+                    className="w-full p-2.5 border border-outline-variant rounded-lg text-sm bg-white focus:outline-none focus:border-primary font-sans"
+                  >
+                    <option value="">-- Select a Resource --</option>
+                    {myUploadedResources.map((res) => (
+                      <option key={res.id} value={res.id}>
+                        {res.title} ({res.subject})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
+
+            {fulfillError && (
+              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[#fef2f2] border border-[#fca5a5] text-[#991b1b] text-xs font-medium">
+                <FiAlertCircle size={14} className="shrink-0 mt-0.5" />
+                <span>{fulfillError}</span>
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end pt-2 border-t border-outline-variant">
+              <Button type="button" onClick={() => setFulfillingRequest(null)} variant="outline" size="sm" disabled={fulfilling}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="primary" size="sm" disabled={fulfilling || (fulfillMethod === 'select' && myUploadedResources.length === 0)} className="gap-2">
+                {fulfilling && <FiLoader size={14} className="animate-spin" />}
+                {fulfilling ? 'Fulfilling...' : 'Fulfill Request'}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {/* Dynamic QR Sharing Modal */}
       {sharingResource && (

@@ -6,6 +6,41 @@ import Login3DBackground from '../../components/auth/Login3DBackground';
 import logo from '../../assets/logo.png';
 import { FiSun, FiMoon, FiCheck, FiArrowLeft } from 'react-icons/fi';
 
+const isRecognisedCollege = (name) => {
+  if (!name) return false;
+  const lower = name.toLowerCase().trim();
+  const keywords = ['university', 'institute', 'college', 'iit', 'mit', 'stanford', 'harvard', 'caltech', 'berkeley', 'oxford', 'tsinghua', 'upes'];
+  return keywords.some(k => lower.includes(k));
+};
+
+const isGraduationYearInPast = (endYearStr) => {
+  if (!endYearStr) return false;
+  const cleaned = endYearStr.trim().toLowerCase();
+  const parsedTime = Date.parse(cleaned);
+  const now = new Date(2026, 6, 23); // Current date is July 23, 2026 (Month is 0-indexed, so 6 is July)
+  if (!isNaN(parsedTime)) {
+    return new Date(parsedTime) < now;
+  }
+  const yearMatch = cleaned.match(/\b(19|20)\d{2}\b/);
+  if (yearMatch) {
+    const year = parseInt(yearMatch[0], 10);
+    if (year < 2026) return true;
+    if (year > 2026) return false;
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    let monthIdx = -1;
+    for (let i = 0; i < months.length; i++) {
+      if (cleaned.includes(months[i])) {
+        monthIdx = i;
+        break;
+      }
+    }
+    if (monthIdx !== -1) {
+      return monthIdx < 6;
+    }
+  }
+  return false;
+};
+
 const validatePassword = (pw) => {
   return {
     minLength: pw.length >= 8,
@@ -39,7 +74,7 @@ const PasswordChecklist = ({ password }) => {
           }`}>
             {item.met ? '✓' : '•'}
           </span>
-          <span className={item.met ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}>
+          <span className={item.met ? 'text-emerald-650 dark:text-emerald-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}>
             {item.label}
           </span>
         </div>
@@ -51,7 +86,7 @@ const PasswordChecklist = ({ password }) => {
 export default function AuthPage({ initialMode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, register, settings, updateSettings } = useApp();
+  const { login, register, settings, updateSettings, setUserRole, updateProfile } = useApp();
 
   // Derive mode from URL
   const urlMode = location.pathname.includes('register') || location.pathname.includes('signup') ? 'register' : 'login';
@@ -82,6 +117,10 @@ export default function AuthPage({ initialMode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Mentorship/Alumni registration options
+  const [registerAsAlumni, setRegisterAsAlumni] = useState(false);
+  const [registerAsSenior, setRegisterAsSenior] = useState(false);
+
   const resetFormFields = () => {
     setEmail('');
     setPassword('');
@@ -97,6 +136,8 @@ export default function AuthPage({ initialMode }) {
     setTerms(false);
     setError('');
     setLoading(false);
+    setRegisterAsAlumni(false);
+    setRegisterAsSenior(false);
   };
 
   /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
@@ -134,6 +175,19 @@ export default function AuthPage({ initialMode }) {
     setLoading(true);
     try {
       await login(email, password);
+      // Case 2: Auto-detect graduated student on login
+      const savedUserStr = localStorage.getItem('bsn_user');
+      if (savedUserStr) {
+        const loggedUser = JSON.parse(savedUserStr);
+        const role = loggedUser.role || 'Student';
+        if (role === 'Student' || role === 'Student + Senior') {
+          const gradYear = loggedUser.endYear || loggedUser.graduationYear;
+          if (gradYear && isGraduationYearInPast(gradYear)) {
+            setUserRole('Senior/Alumni');
+            updateProfile({ role: 'Senior/Alumni' });
+          }
+        }
+      }
       // Redirection after successful login directly to the main BSN dashboard
       navigate('/dashboard', { replace: true });
     } catch (err) {
@@ -201,6 +255,26 @@ export default function AuthPage({ initialMode }) {
       return;
     }
 
+    // Determine custom role locally based on graduation year and choices
+    let determinedRole = 'Student';
+    if (role === 'student') {
+      if (isGraduationYearInPast(endYear.trim())) {
+        determinedRole = 'Senior/Alumni';
+      } else {
+        determinedRole = registerAsSenior ? 'Student + Senior' : 'Student';
+      }
+    } else if (role === 'recruiter') {
+      if (collegeName.trim() && isRecognisedCollege(collegeName.trim()) && registerAsAlumni) {
+        determinedRole = 'Recruiter + Alumni';
+      } else {
+        determinedRole = 'Recruiter';
+      }
+    } else if (role === 'faculty') {
+      determinedRole = 'Faculty';
+    } else if (role === 'admin') {
+      determinedRole = 'Platform Admin';
+    }
+
     setLoading(true);
     try {
       const university = collegeName.trim() || institutionName.trim() || companyName.trim() || 'BioPay University';
@@ -208,7 +282,7 @@ export default function AuthPage({ initialMode }) {
         name: name.trim(),
         email,
         password,
-        role,
+        role: role,
         college: university,
         university: university,
         graduationYear: endYear.trim(),
@@ -218,6 +292,11 @@ export default function AuthPage({ initialMode }) {
         company: companyName.trim()
       };
       await register(data);
+      
+      // Override role locally to support our custom persona mapping
+      setUserRole(determinedRole);
+      updateProfile({ role: determinedRole });
+
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed');
@@ -619,9 +698,43 @@ export default function AuthPage({ initialMode }) {
                       />
                     </div>
                   </div>
+                  {endYear && !isGraduationYearInPast(endYear) && (
+                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 mt-2 transition-all">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Would you like to mentor your juniors as a Senior?
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        This enables mentorship features, student Q&A, and senior guidance tabs on your dashboard.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsSenior(true)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            registerAsSenior 
+                              ? 'bg-primary text-white shadow-sm' 
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750'
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsSenior(false)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            !registerAsSenior 
+                              ? 'bg-primary text-white shadow-sm' 
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750'
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-
+ 
               {/* ── Faculty fields ── */}
               {detectedRoleForRegister === 'faculty' && (
                 <div className="pt-2">
@@ -635,18 +748,63 @@ export default function AuthPage({ initialMode }) {
                   />
                 </div>
               )}
-
+ 
               {/* ── Recruiter fields ── */}
               {detectedRoleForRegister === 'recruiter' && (
-                <div className="pt-2">
-                  <label className={labelClass}>Company Name</label>
-                  <input
-                    value={companyName}
-                    onChange={e => setCompanyName(e.target.value)}
-                    placeholder="e.g. Google"
-                    className={inputClass}
-                    required
-                  />
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <label className={labelClass}>Company Name</label>
+                    <input
+                      value={companyName}
+                      onChange={e => setCompanyName(e.target.value)}
+                      placeholder="e.g. Google"
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>College / University (Optional)</label>
+                    <input
+                      value={collegeName}
+                      onChange={e => setCollegeName(e.target.value)}
+                      placeholder="e.g. Stanford University"
+                      className={inputClass}
+                    />
+                  </div>
+                  {collegeName && isRecognisedCollege(collegeName) && (
+                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 mt-2 transition-all">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Would you also like to register as an Alumni Mentor for this institution?
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        This will display Alumni mentorship features and Q&A resources alongside your Recruiter tools.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsAlumni(true)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            registerAsAlumni 
+                              ? 'bg-primary text-white shadow-sm' 
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750'
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsAlumni(false)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            !registerAsAlumni 
+                              ? 'bg-primary text-white shadow-sm' 
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750'
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

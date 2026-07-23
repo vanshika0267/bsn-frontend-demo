@@ -6,6 +6,8 @@ import { recruiterConfig } from '../data/roleConfig/recruiter';
 import { collegeAdminConfig } from '../data/roleConfig/collegeAdmin';
 import { platformAdminConfig } from '../data/roleConfig/platformAdmin';
 import { facultyConfig } from '../data/roleConfig/faculty';
+import { studentSeniorConfig } from '../data/roleConfig/studentSenior';
+import { recruiterAlumniConfig } from '../data/roleConfig/recruiterAlumni';
 
 const RoleContext = createContext();
 
@@ -26,6 +28,10 @@ export const RoleProvider = ({ children }) => {
         return platformAdminConfig;
       case 'Faculty':
         return facultyConfig;
+      case 'Student + Senior':
+        return studentSeniorConfig;
+      case 'Recruiter + Alumni':
+        return recruiterAlumniConfig;
       default:
         return studentConfig;
     }
