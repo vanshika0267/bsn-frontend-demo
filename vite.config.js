@@ -7,16 +7,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          motion: ['framer-motion'],
-        },
-      },
-    },
+    chunkSizeWarningLimit: 1000
   },
   server: {
     port: 5173,
@@ -25,4 +16,3 @@ export default defineConfig({
     port: 4173,
   },
 })
-

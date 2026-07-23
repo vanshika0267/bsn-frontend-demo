@@ -4,7 +4,7 @@ import { FiBell, FiSearch, FiLogOut, FiUser, FiSettings, FiMenu, FiSun, FiMoon }
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const Navbar = ({ onMenuClick }) => {
+const Navbar = ({ onMenuClick, isSidebarOpen }) => {
   const { user, userRole, logout, notifications, searchQuery, setSearchQuery, settings, updateSettings } = useApp();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
@@ -18,11 +18,14 @@ const Navbar = ({ onMenuClick }) => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b border-outline-variant px-4 py-2 flex items-center justify-between">
-      {/* Left: Mobile Menu Toggle & Brand */}
+      {/* Left: Mobile & Desktop Menu Toggle & Brand */}
       <div className="flex items-center gap-3">
         <button 
           onClick={onMenuClick}
-          className="p-2 hover:bg-surface-container rounded-lg text-on-surface-variant hover:text-on-surface lg:hidden focus:outline-none"
+          className="p-2 hover:bg-surface-container rounded-lg text-on-surface-variant hover:text-on-surface focus:outline-none transition-colors"
+          title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+          aria-label="Toggle Navigation Sidebar"
+          id="universal-sidebar-toggle"
         >
           <FiMenu size={20} />
         </button>
