@@ -59,6 +59,7 @@ export const RoleProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useRole = () => {
   const context = useContext(RoleContext);
   if (!context) {

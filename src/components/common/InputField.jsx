@@ -9,8 +9,12 @@ const InputField = ({
   icon: Icon,
   error,
   required = false,
+  disabled = false,
+  readOnly = false,
   className = '',
-  id
+  id,
+  inputRef,
+  ...props
 }) => {
   return (
     <div className={`flex flex-col gap-1.5 w-full ${className}`}>
@@ -30,16 +34,24 @@ const InputField = ({
         <input
           type={type}
           id={id}
+          ref={inputRef}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
           required={required}
+          disabled={disabled}
+          readOnly={readOnly}
+          {...props}
           className={`w-full text-body-md rounded-lg py-2 px-4 bsn-input transition-all duration-200 ${
             Icon ? 'pl-10' : ''
           } ${
             error 
               ? 'border-error/50 focus:border-error focus:ring-error/20' 
               : 'border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20'
+          } ${
+            disabled ? 'opacity-70 bg-surface-container-low cursor-not-allowed select-none' : ''
+          } ${
+            readOnly ? 'bg-surface-container-low/60 text-on-surface border-outline-variant/60 cursor-default focus:border-outline-variant focus:ring-0' : ''
           }`}
         />
       </div>

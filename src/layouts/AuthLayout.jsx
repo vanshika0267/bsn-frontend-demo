@@ -5,9 +5,9 @@ import Login3DBackground from '../components/auth/Login3DBackground';
 
 const AuthLayout = ({ children }) => {
   return (
-    <div className="min-h-screen w-full flex bg-surface text-on-surface overflow-x-hidden font-sans">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen w-full flex bg-surface text-on-surface overflow-x-hidden overflow-y-auto lg:overflow-hidden font-sans">
       {/* Left Column: Form Section */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-between p-6 sm:p-10 z-10 bg-white border-r border-outline-variant">
+      <div className="w-full lg:w-1/2 flex flex-col justify-between p-5 sm:p-8 lg:p-10 z-10 bg-white border-r border-outline-variant">
         {/* Brand Header */}
         <div className="flex items-center gap-2">
           <Link to="/" className="flex items-center gap-2">
@@ -25,19 +25,19 @@ const AuthLayout = ({ children }) => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-md mx-auto my-auto py-8"
+          className="w-full max-w-md mx-auto my-auto py-4"
         >
           {children}
         </motion.div>
 
         {/* Footer */}
-        <div className="text-center lg:text-left text-xs text-on-surface-variant font-medium">
+        <div className="text-center lg:text-left text-[11px] sm:text-xs text-on-surface-variant font-medium">
           © {new Date().getFullYear()} BSN Network. All rights reserved.
         </div>
       </div>
 
       {/* Right Column: Visual Showcase (Hidden on Mobile/Tablet) */}
-      <div className="hidden lg:flex w-1/2 relative bg-surface-container-low overflow-hidden items-center justify-center p-12 select-none">
+      <div className="hidden lg:flex w-1/2 relative bg-surface-container-low overflow-hidden items-center justify-center p-8 lg:p-10 select-none">
         {/* 3D Animation Background */}
         <div className="absolute inset-0 z-0">
           <Login3DBackground />

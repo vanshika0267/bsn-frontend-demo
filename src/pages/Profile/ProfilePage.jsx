@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiEdit, FiMapPin, FiBriefcase, FiLink, FiDownload, FiCheck, 
-  FiGithub, FiExternalLink, FiAward, FiStar, FiBookOpen,
-  FiCamera, FiTrash2, FiUpload, FiAlertCircle, FiX
+  FiGithub, FiExternalLink, FiAward, FiBookOpen,
+  FiCamera, FiTrash2, FiUpload, FiAlertCircle, FiX, FiPlus
 } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
 import DashboardLayout from '../../layouts/DashboardLayout';
@@ -20,6 +20,27 @@ const ProfilePage = () => {
   const { user, updateProfile } = useApp();
   const navigate = useNavigate();
   const hasProfilePicture = Boolean(user.profilePicture && user.profilePicture.toString().trim());
+
+  // Page-Wide Single Edit Profile Mode state
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const firstInputRef = useRef(null);
+
+  // Editable Form States
+  const [editName, setEditName] = useState(user.name || '');
+  const [editHeadline, setEditHeadline] = useState(user.headline || '');
+  const [editCollege, setEditCollege] = useState(user.college || '');
+  const [editBio, setEditBio] = useState(user.bio || '');
+  const [editSkills, setEditSkills] = useState(user.skills || []);
+  const [editInterests, setEditInterests] = useState(user.interests || []);
+  const [editAchievements, setEditAchievements] = useState(user.achievements || []);
+  const [editResources, setEditResources] = useState(user.sharedResources || []);
+
+  // Temporary Inputs for Adding Items in Edit Mode
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillLevel, setNewSkillLevel] = useState('Intermediate');
+  const [newInterestName, setNewInterestName] = useState('');
   
   // Profile Picture Modal states
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -37,14 +58,70 @@ const ProfilePage = () => {
   const [isCoverUploading, setIsCoverUploading] = useState(false);
   const [coverSuccess, setCoverSuccess] = useState(false);
 
-  // Edit Profile Modal states
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editName, setEditName] = useState(user.name);
-  const [editHeadline, setEditHeadline] = useState(user.headline);
-  const [editBio, setEditBio] = useState(user.bio);
-  
   // Copied alert state
   const [copied, setCopied] = useState(false);
+
+  // Toggle Edit Mode Handlers
+  const handleStartEdit = () => {
+    setEditName(user.name || '');
+    setEditHeadline(user.headline || '');
+    setEditCollege(user.college || '');
+    setEditBio(user.bio || '');
+    setEditSkills([...(user.skills || [])]);
+    setEditInterests([...(user.interests || [])]);
+    setEditAchievements([...(user.achievements || [])]);
+    setEditResources([...(user.sharedResources || [])]);
+    setProfileError('');
+    setIsEditingProfile(true);
+
+    setTimeout(() => {
+      if (firstInputRef.current) {
+        firstInputRef.current.focus();
+      }
+    }, 100);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingProfile(false);
+    setProfileError('');
+    setEditName(user.name || '');
+    setEditHeadline(user.headline || '');
+    setEditCollege(user.college || '');
+    setEditBio(user.bio || '');
+    setEditSkills(user.skills || []);
+    setEditInterests(user.interests || []);
+    setEditAchievements(user.achievements || []);
+    setEditResources(user.sharedResources || []);
+  };
+
+  const handleSaveProfile = async (e) => {
+    if (e) e.preventDefault();
+    setProfileError('');
+
+    if (!editName.trim()) {
+      setProfileError('Full Name is required.');
+      return;
+    }
+
+    setIsSubmittingProfile(true);
+    try {
+      await updateProfile({
+        name: editName.trim(),
+        headline: editHeadline.trim(),
+        college: editCollege.trim(),
+        bio: editBio.trim(),
+        skills: editSkills,
+        interests: editInterests,
+        achievements: editAchievements,
+        sharedResources: editResources
+      });
+      setIsEditingProfile(false);
+    } catch (err) {
+      setProfileError(err?.message || 'Failed to save profile changes.');
+    } finally {
+      setIsSubmittingProfile(false);
+    }
+  };
 
   const openAvatarModal = () => {
     setAvatarPreview(user.profilePicture);
@@ -67,7 +144,6 @@ const ProfilePage = () => {
 
     if (!file) return;
 
-    // Validate format
     const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const isValidExtension = ['png', 'jpg', 'jpeg'].includes(fileExtension);
@@ -76,13 +152,11 @@ const ProfilePage = () => {
       return;
     }
 
-    // Validate size (10 MB)
     if (file.size > 10 * 1024 * 1024) {
       setCoverError('File is too large. Maximum size is 10 MB.');
       return;
     }
 
-    // Show preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setCoverPreview(reader.result);
@@ -119,7 +193,6 @@ const ProfilePage = () => {
 
     if (!file) return;
 
-    // Validate format
     const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const isValidExtension = ['png', 'jpg', 'jpeg'].includes(fileExtension);
@@ -128,13 +201,11 @@ const ProfilePage = () => {
       return;
     }
 
-    // Validate size (5 MB)
     if (file.size > 5 * 1024 * 1024) {
       setAvatarError('File is too large. Maximum size is 5 MB.');
       return;
     }
 
-    // Show preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatarPreview(reader.result);
@@ -165,156 +236,117 @@ const ProfilePage = () => {
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(user.portfolioUrl);
+    navigator.clipboard.writeText(user.portfolioUrl || window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSaveProfile = (e) => {
-    e.preventDefault();
-    updateProfile({
-      name: editName,
-      headline: editHeadline,
-      bio: editBio
-    });
-    setIsEditOpen(false);
-  };
-
-  // Skills Modal states & handlers
-  const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
-  const [skillInput, setSkillInput] = useState('');
-  const [tempSkills, setTempSkills] = useState([]);
-  const [skillsError, setSkillsError] = useState('');
-
-  const openSkillsModal = () => {
-    setTempSkills([...(user.skills || [])]);
-    setSkillInput('');
-    setSkillsError('');
-    setIsSkillsModalOpen(true);
-  };
-
-  const performAddSkill = (value) => {
-    const val = value.trim();
+  // Helper functions for Skill/Interest/Achievement/Resource editing
+  const handleAddSkill = () => {
+    const val = newSkillName.trim();
     if (!val) return;
-
-    if (tempSkills.some(s => s.name.toLowerCase() === val.toLowerCase())) {
-      setSkillsError('This skill is already added.');
-      return;
-    }
-
-    if (tempSkills.length >= 20) {
-      setSkillsError('Maximum limit of 20 skills reached.');
-      return;
-    }
-
-    setSkillsError('');
-    const existing = (user.skills || []).find(s => s.name.toLowerCase() === val.toLowerCase());
-    const newSkill = {
-      name: val,
-      level: existing ? existing.level : 'Intermediate',
-      value: existing ? existing.value : 75
-    };
-
-    setTempSkills([...tempSkills, newSkill]);
-    setSkillInput('');
-  };
-
-  const handleAddSkill = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      performAddSkill(skillInput);
-    }
-  };
-
-  const handleAddSkillClick = (e) => {
-    e.preventDefault();
-    performAddSkill(skillInput);
+    if (editSkills.some(s => s.name.toLowerCase() === val.toLowerCase())) return;
+    setEditSkills([...editSkills, { name: val, level: newSkillLevel, value: newSkillLevel === 'Expert' ? 95 : newSkillLevel === 'Advanced' ? 85 : 65 }]);
+    setNewSkillName('');
   };
 
   const handleRemoveSkill = (index) => {
-    setTempSkills(tempSkills.filter((_, i) => i !== index));
-    setSkillsError('');
+    setEditSkills(editSkills.filter((_, i) => i !== index));
   };
 
-  const handleEditSkill = (index) => {
-    const skillToEdit = tempSkills[index];
-    setSkillInput(skillToEdit.name);
-    setTempSkills(tempSkills.filter((_, i) => i !== index));
-    setSkillsError('');
-  };
-
-  const handleSaveSkills = (e) => {
-    e.preventDefault();
-    updateProfile({ skills: tempSkills });
-    setIsSkillsModalOpen(false);
-  };
-
-  // Interests Modal states & handlers
-  const [isInterestsModalOpen, setIsInterestsModalOpen] = useState(false);
-  const [interestInput, setInterestInput] = useState('');
-  const [tempInterests, setTempInterests] = useState([]);
-  const [interestsError, setInterestsError] = useState('');
-
-  const openInterestsModal = () => {
-    setTempInterests([...(user.interests || [])]);
-    setInterestInput('');
-    setInterestsError('');
-    setIsInterestsModalOpen(true);
-  };
-
-  const performAddInterest = (value) => {
-    const val = value.trim();
+  const handleAddInterest = () => {
+    const val = newInterestName.trim();
     if (!val) return;
-
-    if (tempInterests.some(i => i.toLowerCase() === val.toLowerCase())) {
-      setInterestsError('This interest is already added.');
-      return;
-    }
-
-    if (tempInterests.length >= 20) {
-      setInterestsError('Maximum limit of 20 interests reached.');
-      return;
-    }
-
-    setInterestsError('');
-    setTempInterests([...tempInterests, val]);
-    setInterestInput('');
-  };
-
-  const handleAddInterest = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      performAddInterest(interestInput);
-    }
-  };
-
-  const handleAddInterestClick = (e) => {
-    e.preventDefault();
-    performAddInterest(interestInput);
+    if (editInterests.some(i => i.toLowerCase() === val.toLowerCase())) return;
+    setEditInterests([...editInterests, val]);
+    setNewInterestName('');
   };
 
   const handleRemoveInterest = (index) => {
-    setTempInterests(tempInterests.filter((_, i) => i !== index));
-    setInterestsError('');
+    setEditInterests(editInterests.filter((_, i) => i !== index));
   };
 
-  const handleEditInterest = (index) => {
-    const interestToEdit = tempInterests[index];
-    setInterestInput(interestToEdit);
-    setTempInterests(tempInterests.filter((_, i) => i !== index));
-    setInterestsError('');
+  const handleAddAchievement = () => {
+    const newAch = {
+      id: Date.now(),
+      date: 'JAN ' + new Date().getFullYear(),
+      title: 'New Accomplishment',
+      description: 'Describe your award, publication, or achievement details here.'
+    };
+    setEditAchievements([newAch, ...editAchievements]);
   };
 
-  const handleSaveInterests = (e) => {
-    e.preventDefault();
-    updateProfile({ interests: tempInterests });
-    setIsInterestsModalOpen(false);
+  const handleRemoveAchievement = (index) => {
+    setEditAchievements(editAchievements.filter((_, i) => i !== index));
   };
 
+  const handleAddResource = () => {
+    const newRes = {
+      id: Date.now(),
+      title: 'New Study Guide / Cheat Sheet',
+      category: 'Notes',
+      fileSize: '2.5 MB',
+      downloads: 0,
+      likes: 0
+    };
+    setEditResources([newRes, ...editResources]);
+  };
+
+  const handleRemoveResource = (index) => {
+    setEditResources(editResources.filter((_, i) => i !== index));
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
+
+        {/* Floating Active Edit Banner */}
+        <AnimatePresence>
+          {isEditingProfile && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-3.5 bg-[#eff6ff] dark:bg-slate-900 border border-primary/30 dark:border-primary/40 rounded-xl shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 sticky top-4 z-30"
+            >
+              <div className="flex items-center gap-2.5 text-xs font-bold text-primary dark:text-blue-400">
+                <FiEdit size={16} className="shrink-0 animate-pulse" />
+                <span>Profile Edit Mode Active — Modify your profile details below and click Save Profile when finished.</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  onClick={handleSaveProfile}
+                  variant="primary"
+                  size="sm"
+                  disabled={isSubmittingProfile}
+                  className="gap-1.5 py-1.5 px-3.5 text-xs"
+                >
+                  <FiCheck size={14} />
+                  <span>{isSubmittingProfile ? 'Saving...' : 'Save Profile'}</span>
+                </Button>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  disabled={isSubmittingProfile}
+                  className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <FiX size={14} />
+                  <span>Cancel</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Global Error Banner */}
+        {profileError && (
+          <div className="p-3 rounded-lg bg-error/10 border border-error/20 text-error text-xs font-semibold flex items-center justify-between">
+            <span>{profileError}</span>
+            <button onClick={() => setProfileError('')} className="text-error hover:opacity-75">
+              <FiX size={14} />
+            </button>
+          </div>
+        )}
         
         {/* Profile Header & Banner Card */}
         <div className="bg-white rounded-xl overflow-hidden border border-outline-variant relative shadow-sm">
@@ -342,10 +374,10 @@ const ProfilePage = () => {
           {/* Profile Details Container */}
           <div className="px-5 pb-5 pt-0 relative flex flex-col md:flex-row justify-between items-start md:items-end gap-5">
             {/* Avatar & text details */}
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end -mt-14 sm:-mt-16 relative z-10">
+            <div className="flex flex-col sm:flex-row gap-4 items-start relative z-10 w-full md:w-auto">
               <div 
                 onClick={openAvatarModal}
-                className="group relative cursor-pointer overflow-hidden rounded-xl w-24 h-24 sm:w-28 sm:h-28 ring-4 ring-white shadow-lg shrink-0 transition-transform duration-300 hover:scale-105"
+                className="group relative cursor-pointer overflow-hidden rounded-xl w-24 h-24 sm:w-28 sm:h-28 ring-4 ring-white shadow-lg shrink-0 transition-transform duration-300 hover:scale-105 -mt-14 sm:-mt-16 bg-white"
                 title="Click to update profile picture"
               >
                 <Avatar
@@ -358,24 +390,62 @@ const ProfilePage = () => {
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-center px-1">Update Photo</span>
                 </div>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-extrabold text-on-surface font-poppins">{user.name}</h1>
-                  <Badge variant="primary">Verified Student</Badge>
+
+              {!isEditingProfile ? (
+                <div className="space-y-1 sm:self-end pt-2 sm:pt-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl sm:text-2xl font-extrabold text-on-surface font-poppins">{user.name}</h1>
+                    <Badge variant="primary">Verified Student</Badge>
+                  </div>
+                  <p className="text-xs sm:text-sm text-on-surface-variant font-semibold">{user.headline}</p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-on-surface-variant font-medium">
+                    <span className="flex items-center gap-1"><FiMapPin size={13} /> {user.college}</span>
+                    <span className="flex items-center gap-1"><FiBriefcase size={13} /> Score: {user.impactScore}</span>
+                  </div>
                 </div>
-                <p className="text-xs sm:text-sm text-on-surface-variant font-semibold">{user.headline}</p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-on-surface-variant font-medium">
-                  <span className="flex items-center gap-1"><FiMapPin size={13} /> {user.college}</span>
-                  <span className="flex items-center gap-1"><FiBriefcase size={13} /> Score: {user.impactScore}</span>
+              ) : (
+                <div className="space-y-3 w-full max-w-lg pt-3">
+                  <InputField
+                    label="Full Name"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    required
+                    inputRef={firstInputRef}
+                    id="edit-profile-name"
+                  />
+                  <InputField
+                    label="Headline / Professional Title"
+                    value={editHeadline}
+                    onChange={(e) => setEditHeadline(e.target.value)}
+                    id="edit-profile-headline"
+                  />
+                  <InputField
+                    label="Institution / College"
+                    value={editCollege}
+                    onChange={(e) => setEditCollege(e.target.value)}
+                    readOnly={true}
+                    id="edit-profile-college"
+                  />
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Actions button group */}
             <div className="flex flex-wrap gap-2 w-full md:w-auto relative z-10 shrink-0">
-              <Button onClick={() => navigate('/profile/edit')} variant="secondary" size="sm" className="gap-1.5 py-2 px-3 text-xs">
-                <FiEdit size={14} /> Edit Profile
-              </Button>
+              {!isEditingProfile ? (
+                <Button onClick={handleStartEdit} variant="secondary" size="sm" className="gap-1.5 py-2 px-3 text-xs" id="btn-edit-profile-main">
+                  <FiEdit size={14} /> Edit Profile
+                </Button>
+              ) : (
+                <>
+                  <Button onClick={handleSaveProfile} variant="primary" size="sm" className="gap-1.5 py-2 px-3 text-xs" disabled={isSubmittingProfile}>
+                    <FiCheck size={14} /> {isSubmittingProfile ? 'Saving...' : 'Save Profile'}
+                  </Button>
+                  <Button onClick={handleCancelEdit} variant="outline" size="sm" className="gap-1.5 py-2 px-3 text-xs" disabled={isSubmittingProfile}>
+                    <FiX size={14} /> Cancel
+                  </Button>
+                </>
+              )}
               <Button onClick={handleCopyLink} variant="glass" size="sm" className="gap-1.5 py-2 px-3 text-xs">
                 {copied ? <FiCheck size={14} className="text-[#166534]" /> : <FiLink size={14} />}
                 {copied ? 'Copied URL' : 'Copy Portfolio'}
@@ -396,72 +466,163 @@ const ProfilePage = () => {
             {/* About / Bio */}
             <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm">
               <h3 className="text-sm font-bold text-on-surface mb-2.5 font-poppins">About Me</h3>
-              <p className="text-xs text-on-surface-variant leading-relaxed font-light whitespace-pre-line">
-                {user.bio || "No bio added yet."}
-              </p>
+              {!isEditingProfile ? (
+                <p className="text-xs text-on-surface-variant leading-relaxed font-light whitespace-pre-line">
+                  {user.bio || "No bio added yet."}
+                </p>
+              ) : (
+                <div className="flex flex-col gap-1.5 w-full">
+                  <label htmlFor="edit-bio-area" className="text-xs font-semibold text-on-surface-variant">
+                    Bio Description
+                  </label>
+                  <textarea
+                    id="edit-bio-area"
+                    rows={5}
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    placeholder="Write a brief introduction about yourself..."
+                    className="w-full text-xs rounded-lg p-3 bg-white border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface transition-all font-sans"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Verified Skills with progress rating */}
             <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm">
-              <div className="flex justify-between items-center mb-3.5">
-                <h3 className="text-sm font-bold text-on-surface font-poppins">Verified Skill Index</h3>
-                <button 
-                  onClick={() => navigate('/profile/edit/skills')}
-                  className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors duration-200 outline-none focus:ring-2 focus:ring-primary/20"
-                  title="Edit Skills"
-                >
-                  <FiEdit size={14} />
-                </button>
-              </div>
-              <div className="space-y-3.5">
-                {user.skills && user.skills.length > 0 ? (
-                  user.skills.map((skill, idx) => (
-                    <div key={idx} className="space-y-1.5">
-                      <div className="flex justify-between items-center text-xs font-semibold text-on-surface-variant">
-                        <span>{skill.name}</span>
-                        <span className="text-[10px] text-primary font-bold bg-[#eff6ff] px-1.5 py-0.5 rounded border border-primary/20">
-                          {skill.level}
-                        </span>
+              <h3 className="text-sm font-bold text-on-surface mb-3.5 font-poppins">Verified Skill Index</h3>
+              
+              {!isEditingProfile ? (
+                <div className="space-y-3.5">
+                  {(user.skills && user.skills.length > 0) ? (
+                    user.skills.map((skill, idx) => (
+                      <div key={idx} className="space-y-1.5">
+                        <div className="flex justify-between items-center text-xs font-semibold text-on-surface-variant">
+                          <span>{skill.name}</span>
+                          <span className="text-[10px] text-primary font-bold bg-[#eff6ff] px-1.5 py-0.5 rounded border border-primary/20">
+                            {skill.level}
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${skill.value}%` }}
+                            transition={{ duration: 0.8, ease: 'easeOut' }}
+                            className="h-full rounded-full bg-primary"
+                          />
+                        </div>
                       </div>
-                      <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${skill.value}%` }}
-                          transition={{ duration: 0.8, ease: 'easeOut' }}
-                          className="h-full rounded-full bg-primary"
-                        />
+                    ))
+                  ) : (
+                    <p className="text-xs text-on-surface-variant font-medium">No skills added yet.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Add Skill (e.g. TypeScript)"
+                      value={newSkillName}
+                      onChange={(e) => setNewSkillName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddSkill();
+                        }
+                      }}
+                      className="flex-1 text-xs rounded-lg px-3 py-2 border border-outline-variant focus:border-primary outline-none"
+                    />
+                    <select
+                      value={newSkillLevel}
+                      onChange={(e) => setNewSkillLevel(e.target.value)}
+                      className="text-xs rounded-lg px-2 py-2 border border-outline-variant bg-white outline-none"
+                    >
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                      <option value="Expert">Expert</option>
+                    </select>
+                    <Button type="button" onClick={handleAddSkill} variant="primary" size="sm" className="px-3">
+                      <FiPlus size={14} />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {editSkills.map((sk, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-surface border border-outline-variant/60 rounded-lg text-xs">
+                        <span className="font-bold text-on-surface">{sk.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-[#eff6ff] rounded border border-primary/20">{sk.level}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSkill(idx)}
+                            className="text-on-surface-variant hover:text-error p-1 rounded"
+                            title="Remove Skill"
+                          >
+                            <FiX size={14} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-on-surface-variant font-medium">No skills added yet.</p>
-                )}
-              </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Academic Interests */}
             <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-sm font-bold text-on-surface font-poppins">Academic Interests</h3>
-                <button 
-                  onClick={() => navigate('/profile/edit/interests')}
-                  className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors duration-200 outline-none focus:ring-2 focus:ring-primary/20"
-                  title="Edit Interests"
-                >
-                  <FiEdit size={14} />
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {user.interests && user.interests.length > 0 ? (
-                  user.interests.map((interest, idx) => (
-                    <span key={idx} className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-surface border border-outline-variant text-on-surface-variant">
-                      {interest}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-xs text-on-surface-variant font-medium">No interests added yet.</p>
-                )}
-              </div>
+              <h3 className="text-sm font-bold text-on-surface mb-3 font-poppins">Academic Interests</h3>
+              
+              {!isEditingProfile ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {(user.interests && user.interests.length > 0) ? (
+                    user.interests.map((interest, idx) => (
+                      <span key={idx} className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-surface border border-outline-variant text-on-surface-variant">
+                        {interest}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-xs text-on-surface-variant font-medium">No interests added yet.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Add Interest (e.g. Web3)"
+                      value={newInterestName}
+                      onChange={(e) => setNewInterestName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddInterest();
+                        }
+                      }}
+                      className="flex-1 text-xs rounded-lg px-3 py-2 border border-outline-variant focus:border-primary outline-none"
+                    />
+                    <Button type="button" onClick={handleAddInterest} variant="primary" size="sm" className="px-3">
+                      <FiPlus size={14} />
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {editInterests.map((interest, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#eff6ff] text-[#1e40af] border border-primary/20">
+                        <span>{interest}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveInterest(idx)}
+                          className="hover:text-error cursor-pointer"
+                          title="Remove Interest"
+                        >
+                          <FiX size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
@@ -474,61 +635,169 @@ const ProfilePage = () => {
 
             {/* Achievements Timeline */}
             <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm">
-              <h3 className="text-sm font-bold text-on-surface mb-4 flex items-center gap-2 font-poppins">
-                <FiAward className="text-primary" size={16} /> Accomplishments & Awards
-              </h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-bold text-on-surface flex items-center gap-2 font-poppins">
+                  <FiAward className="text-primary" size={16} /> Accomplishments & Awards
+                </h3>
+                {isEditingProfile && (
+                  <Button type="button" onClick={handleAddAchievement} variant="outline" size="sm" className="gap-1 text-xs py-1 px-2.5">
+                    <FiPlus size={13} /> Add
+                  </Button>
+                )}
+              </div>
               
-              {user.achievements && user.achievements.length > 0 ? (
-                <div className="relative pl-5 border-l border-outline-variant space-y-5">
-                  {user.achievements.map((ach) => (
-                    <div key={ach.id} className="relative space-y-1">
-                      <span className="absolute -left-[25.5px] top-1.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-white"></span>
-                      <span className="text-[10px] font-bold text-primary uppercase tracking-wide">{ach.date}</span>
-                      <h4 className="text-xs font-bold text-on-surface">{ach.title}</h4>
-                      <p className="text-[11px] text-on-surface-variant leading-relaxed font-light">{ach.description}</p>
+              {!isEditingProfile ? (
+                (user.achievements && user.achievements.length > 0) ? (
+                  <div className="relative pl-5 border-l border-outline-variant space-y-5">
+                    {user.achievements.map((ach) => (
+                      <div key={ach.id} className="relative space-y-1">
+                        <span className="absolute -left-[25.5px] top-1.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-white"></span>
+                        <span className="text-[10px] font-bold text-primary uppercase tracking-wide">{ach.date}</span>
+                        <h4 className="text-xs font-bold text-on-surface">{ach.title}</h4>
+                        <p className="text-[11px] text-on-surface-variant leading-relaxed font-light">{ach.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-on-surface-variant font-medium">No accomplishments added yet.</p>
+                )
+              ) : (
+                <div className="space-y-3.5">
+                  {editAchievements.map((ach, idx) => (
+                    <div key={ach.id || idx} className="p-3.5 bg-surface border border-outline-variant rounded-xl space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <input
+                          type="text"
+                          value={ach.date}
+                          onChange={(e) => {
+                            const updated = [...editAchievements];
+                            updated[idx].date = e.target.value;
+                            setEditAchievements(updated);
+                          }}
+                          placeholder="Date (e.g. JAN 2026)"
+                          className="text-[10px] font-bold text-primary uppercase w-32 px-2.5 py-1 border border-outline-variant rounded bg-white outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAchievement(idx)}
+                          className="text-on-surface-variant hover:text-error p-1 rounded"
+                          title="Delete Accomplishment"
+                        >
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={ach.title}
+                        onChange={(e) => {
+                          const updated = [...editAchievements];
+                          updated[idx].title = e.target.value;
+                          setEditAchievements(updated);
+                        }}
+                        placeholder="Achievement Title"
+                        className="w-full text-xs font-bold text-on-surface px-2.5 py-1.5 border border-outline-variant rounded bg-white outline-none"
+                      />
+                      <textarea
+                        rows={2}
+                        value={ach.description}
+                        onChange={(e) => {
+                          const updated = [...editAchievements];
+                          updated[idx].description = e.target.value;
+                          setEditAchievements(updated);
+                        }}
+                        placeholder="Achievement Description"
+                        className="w-full text-[11px] text-on-surface-variant px-2.5 py-1.5 border border-outline-variant rounded bg-white outline-none"
+                      />
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-xs text-on-surface-variant font-medium">No accomplishments added yet.</p>
               )}
             </div>
 
             {/* Shared Resources */}
             <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm">
-              <h3 className="text-sm font-bold text-on-surface mb-3.5 flex items-center gap-2 font-poppins">
-                <FiBookOpen className="text-primary" size={16} /> Shared Resources Published
-              </h3>
-              
-              <div className="space-y-3">
-                {user.sharedResources && user.sharedResources.length > 0 ? (
-                  user.sharedResources.map((res) => (
-                    <div key={res.id} className="p-3 bg-surface border border-outline-variant rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#eff6ff] border border-primary/20 flex items-center justify-center text-primary text-base shrink-0 select-none">
-                          📄
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-bold text-on-surface">{res.title}</h4>
-                          <p className="text-[10px] text-on-surface-variant mt-0.5">Category: {res.category} • {res.fileSize}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-[10px] text-on-surface-variant shrink-0 font-medium">
-                        <span>Downloads: <strong>{res.downloads}</strong></span>
-                        <span>Likes: <strong>{res.likes}</strong></span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-on-surface-variant font-medium">No resources uploaded yet.</p>
+              <div className="flex justify-between items-center mb-3.5">
+                <h3 className="text-sm font-bold text-on-surface flex items-center gap-2 font-poppins">
+                  <FiBookOpen className="text-primary" size={16} /> Shared Resources Published
+                </h3>
+                {isEditingProfile && (
+                  <Button type="button" onClick={handleAddResource} variant="outline" size="sm" className="gap-1 text-xs py-1 px-2.5">
+                    <FiPlus size={13} /> Add
+                  </Button>
                 )}
               </div>
+              
+              {!isEditingProfile ? (
+                (user.sharedResources && user.sharedResources.length > 0) ? (
+                  <div className="space-y-3">
+                    {user.sharedResources.map((res) => (
+                      <div key={res.id} className="p-3 bg-surface border border-outline-variant rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-[#eff6ff] border border-primary/20 flex items-center justify-center text-primary text-base shrink-0 select-none">
+                            📄
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-on-surface">{res.title}</h4>
+                            <p className="text-[10px] text-on-surface-variant mt-0.5">Category: {res.category} • {res.fileSize}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 text-[10px] text-on-surface-variant shrink-0 font-medium">
+                          <span>Downloads: <strong>{res.downloads}</strong></span>
+                          <span>Likes: <strong>{res.likes}</strong></span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-on-surface-variant font-medium">No resources uploaded yet.</p>
+                )
+              ) : (
+                <div className="space-y-3">
+                  {editResources.map((res, idx) => (
+                    <div key={res.id || idx} className="p-3 bg-surface border border-outline-variant rounded-xl flex items-center justify-between gap-3">
+                      <div className="flex-1 space-y-1.5">
+                        <input
+                          type="text"
+                          value={res.title}
+                          onChange={(e) => {
+                            const updated = [...editResources];
+                            updated[idx].title = e.target.value;
+                            setEditResources(updated);
+                          }}
+                          placeholder="Resource Title"
+                          className="w-full text-xs font-bold text-on-surface px-2.5 py-1.5 border border-outline-variant rounded bg-white outline-none"
+                        />
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-on-surface-variant font-medium">Category:</span>
+                          <input
+                            type="text"
+                            value={res.category}
+                            onChange={(e) => {
+                              const updated = [...editResources];
+                              updated[idx].category = e.target.value;
+                              setEditResources(updated);
+                            }}
+                            placeholder="Category"
+                            className="text-[10px] text-on-surface-variant px-2 py-0.5 border border-outline-variant rounded bg-white w-28 outline-none"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveResource(idx)}
+                        className="text-on-surface-variant hover:text-error p-1 shrink-0 rounded"
+                        title="Delete Resource"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>
         </div>
-
-
 
         {/* Profile Picture Upload Modal */}
         <Modal
@@ -538,8 +807,6 @@ const ProfilePage = () => {
           size="sm"
         >
           <form onSubmit={handleSaveAvatar} className="space-y-5">
-            
-            {/* Avatar Preview & Drop/Click Zone */}
             <div className="flex flex-col sm:flex-row items-center gap-5 p-4 bg-surface rounded-xl border border-outline-variant/60">
               <div className="relative shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-outline-variant shadow-md">
                 <img 
@@ -564,7 +831,6 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Error alerts */}
             {avatarError && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
@@ -576,7 +842,6 @@ const ProfilePage = () => {
               </motion.div>
             )}
 
-            {/* Success alerts */}
             {avatarSuccess && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
@@ -588,9 +853,7 @@ const ProfilePage = () => {
               </motion.div>
             )}
 
-            {/* Selection Options */}
             <div className="flex flex-col gap-2">
-              {/* Remove Photo */}
               <Button 
                 onClick={handleRemoveAvatar} 
                 variant="outline" 
@@ -602,7 +865,6 @@ const ProfilePage = () => {
               </Button>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-3 justify-end pt-3.5 border-t border-outline-variant">
               <Button 
                 onClick={() => setIsAvatarModalOpen(false)} 
@@ -619,17 +881,7 @@ const ProfilePage = () => {
                 disabled={isAvatarUploading}
                 className="min-w-[80px]"
               >
-                {isAvatarUploading ? (
-                  <span className="flex items-center gap-1">
-                    <svg className="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  'Save Photo'
-                )}
+                {isAvatarUploading ? 'Saving...' : 'Save Photo'}
               </Button>
             </div>
           </form>
@@ -643,8 +895,6 @@ const ProfilePage = () => {
           size="md"
         >
           <form onSubmit={handleSaveCover} className="space-y-5">
-            
-            {/* Cover Banner Preview */}
             <div className="flex flex-col items-center gap-3 p-4 bg-surface rounded-xl border border-outline-variant/60">
               <div className="relative w-full h-32 sm:h-40 rounded-lg overflow-hidden border border-outline-variant shadow-md bg-surface-container">
                 <img 
@@ -656,7 +906,6 @@ const ProfilePage = () => {
               <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Preview Banner</span>
             </div>
 
-            {/* Drag/Click Zone */}
             <div className="group relative flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 rounded-xl p-6 transition-all duration-200 bg-surface hover:bg-primary/5 cursor-pointer">
               <input 
                 type="file" 
@@ -676,7 +925,6 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Error alerts */}
             {coverError && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
@@ -688,7 +936,6 @@ const ProfilePage = () => {
               </motion.div>
             )}
 
-            {/* Success alerts */}
             {coverSuccess && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
@@ -700,9 +947,7 @@ const ProfilePage = () => {
               </motion.div>
             )}
 
-            {/* Selection Options */}
             <div className="flex flex-col gap-2">
-              {/* Remove Cover */}
               <Button 
                 onClick={handleRemoveCover} 
                 variant="outline" 
@@ -714,7 +959,6 @@ const ProfilePage = () => {
               </Button>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-3 justify-end pt-3.5 border-t border-outline-variant">
               <Button 
                 onClick={() => setIsCoverModalOpen(false)} 
@@ -731,23 +975,11 @@ const ProfilePage = () => {
                 disabled={isCoverUploading}
                 className="min-w-[80px]"
               >
-                {isCoverUploading ? (
-                  <span className="flex items-center gap-1">
-                    <svg className="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  'Save Banner'
-                )}
+                {isCoverUploading ? 'Saving...' : 'Save Banner'}
               </Button>
             </div>
           </form>
         </Modal>
-
-
 
       </div>
     </DashboardLayout>

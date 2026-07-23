@@ -215,3 +215,67 @@ export const adminModerateResource = (id, status) => req("PATCH", `/admin/resour
 export const adminDeleteResource = (id) => req("DELETE", `/admin/resources/${id}`);
 export const adminListOpportunities = () => req("GET", "/admin/opportunities");
 export const adminDeleteOpportunity = (id) => req("DELETE", `/admin/opportunities/${id}`);
+
+// ==========================================
+// PLACEHOLDER EMAIL OTP VERIFICATION HELPERS
+// (Frontend UI Flow — Ready for Backend API Integration)
+// ==========================================
+
+// TODO: Integrate with backend API (POST /auth/send-registration-otp)
+export async function sendRegistrationOTP(email) {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return {
+    success: true,
+    message: `A verification code has been sent to ${email}.`
+  };
+}
+
+// TODO: Integrate with backend API (POST /auth/verify-registration-otp)
+export async function verifyRegistrationOTP(email, otp) {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return {
+    success: true,
+    message: "Email verified successfully!"
+  };
+}
+
+// TODO: Integrate with backend API (POST /auth/resend-registration-otp)
+export async function resendRegistrationOTP(email) {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return {
+    success: true,
+    message: `A new verification code has been sent to ${email}.`
+  };
+}
+
+// ==========================================
+// PLACEHOLDER PROFILE EMAIL CHANGE OTP HELPERS
+// (Frontend UI Flow — Ready for Backend API Integration)
+// ==========================================
+
+// TODO: Integrate backend endpoint (POST /profile/send-email-change-otp)
+export async function sendEmailChangeOTP(currentEmail, newEmail) {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return {
+    success: true,
+    message: `Verification code sent to ${currentEmail}.`
+  };
+}
+
+// TODO: Integrate backend endpoint (POST /profile/verify-email-change-otp)
+export async function verifyEmailChangeOTP(currentEmail, newEmail, otp) {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return {
+    success: true,
+    message: "Email change verified successfully!"
+  };
+}
+
+// TODO: Integrate backend endpoint (POST /profile/resend-email-change-otp)
+export async function resendEmailChangeOTP(currentEmail, newEmail) {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return {
+    success: true,
+    message: `A new verification code has been sent to ${currentEmail}.`
+  };
+}

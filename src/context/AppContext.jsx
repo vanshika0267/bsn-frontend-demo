@@ -70,6 +70,7 @@ export const AppProvider = ({ children }) => {
       opportunityAlerts: true,
       rankUpdates: true,
       darkMode: true,
+      reduceMotion: false,
       autoBackup: false
     };
   });
@@ -83,6 +84,11 @@ export const AppProvider = ({ children }) => {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+    }
+    if (settings.reduceMotion) {
+      document.documentElement.classList.add('reduce-motion');
+    } else {
+      document.documentElement.classList.remove('reduce-motion');
     }
   }, [settings]);
 
@@ -217,6 +223,7 @@ export const AppProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) {

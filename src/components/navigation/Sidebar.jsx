@@ -41,13 +41,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Navigation Links */}
         <div className="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto no-scrollbar">
           {menuItems.map((item, idx) => {
-            // Determine active state based on route path and queries
-            let isActive = false;
-            if (item.tab) {
-              isActive = location.pathname === '/dashboard' && currentTab === item.tab;
-            } else {
-              isActive = location.pathname === item.path;
-            }
+            const isActive = item.tab
+              ? (location.pathname === '/dashboard' && currentTab === item.tab)
+              : (location.pathname === item.path || (item.path === '/profile' && location.pathname.startsWith('/profile')));
 
             const Icon = item.icon;
 

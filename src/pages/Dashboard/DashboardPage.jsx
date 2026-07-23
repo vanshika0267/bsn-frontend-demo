@@ -79,6 +79,13 @@ const DashboardPage = () => {
     }
   }, [currentTab, isAllowedTab, navigate]);
 
+  // Local States for Interactive Widgets
+  const [recOverview, setRecOverview] = useState({ postings: [], totalApplicants: 0, underReview: 0, accepted: 0, recent: [] });
+  const [leaderboard] = useState(initialLeaderboard);
+  const [resources, setResources] = useState(initialLearningResources);
+  const [teamPosts] = useState(initialTeamPosts);
+  const [activities, setActivities] = useState(initialActivity);
+
   // Load real recruiter overview data (postings + applicants) when applicable.
   useEffect(() => {
     if (!(dashboardWidgets || []).includes('recruiter-kpi-stats')) return;
@@ -106,12 +113,7 @@ const DashboardPage = () => {
     return () => { cancelled = true; };
   }, [dashboardWidgets]);
 
-  // Local States for Interactive Widgets
-  const [leaderboard] = useState(initialLeaderboard);
-  const [resources, setResources] = useState(initialLearningResources);
-  const [teamPosts] = useState(initialTeamPosts);
-  const [activities, setActivities] = useState(initialActivity);
-  const [recOverview, setRecOverview] = useState({ postings: [], totalApplicants: 0, underReview: 0, accepted: 0, recent: [] });
+  const bookedSessionsCount = seniorMentorshipRequests.filter(r => r.status === 'Accepted' || r.status === 'Approved').length || seniorMentorshipRequests.length || 0;
 
   const collegePlacementRate = collegeStudents.length
     ? `${Math.round((collegeStudents.filter((s) => s.placed).length / collegeStudents.length) * 100)}%`
