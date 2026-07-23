@@ -78,6 +78,7 @@ export default function AuthPage({ initialMode }) {
   const [institutionName, setInstitutionName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [terms, setTerms] = useState(false);
+  const [isAlumni, setIsAlumni] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -212,6 +213,8 @@ export default function AuthPage({ initialMode }) {
         college: university,
         university: university,
         graduationYear: endYear.trim(),
+        graduation_year: endYear.trim() ? Number(endYear.trim()) : undefined,
+        is_alumni: isAlumni,
         startYear: startYear.trim(),
         endYear: endYear.trim(),
         institution: university,
@@ -619,6 +622,17 @@ export default function AuthPage({ initialMode }) {
                       />
                     </div>
                   </div>
+                  <label className="flex items-start gap-2 pt-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isAlumni}
+                      onChange={e => setIsAlumni(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    <span className="text-[12px] text-slate-500 dark:text-slate-400">
+                      I've already graduated — sign me up as an <strong>alumnus</strong> to mentor students.
+                    </span>
+                  </label>
                 </div>
               )}
 

@@ -47,14 +47,16 @@ export async function apiGet(path) {
   return handle(res);
 }
 
-export async function apiRegister({ name, email, password, college }) {
+export async function apiRegister({ name, email, password, college, is_alumni, graduation_year }) {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, college }),
+    body: JSON.stringify({ name, email, password, college, is_alumni, graduation_year }),
   });
   return handle(res);
 }
+
+export const becomeAlumnus = () => req("POST", "/users/me/become-alumni");
 
 export async function apiLogin(email, password) {
   const body = new URLSearchParams();

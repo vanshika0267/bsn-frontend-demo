@@ -6,23 +6,33 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import InputField from '../../components/common/InputField';
 import { FiUser } from 'react-icons/fi';
+import { updateProfile as apiUpdateProfile } from '../../services/api';
 
 const ProfileEditPage = () => {
   const { user, updateProfile } = useApp();
   const navigate = useNavigate();
 
   const [editName, setEditName] = useState(user.name);
-  const [editHeadline, setEditHeadline] = useState(user.headline);
+  const [editHeadline, setEditHeadline] = useState(user.headline || '');
   const [editBio, setEditBio] = useState(user.bio || '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    updateProfile({
-      name: editName,
-      headline: editHeadline,
-      bio: editBio
-    });
-    navigate('/profile');
+    setSaving(true);
+    setError('');
+    try {
+      // Persist the real fields to the backend (name + bio).
+      await apiUpdateProfile(user.id, { name: editName, bio: editBio });
+      // Keep local UI in sync (headline is a display-only field).
+      updateProfile({ name: editName, headline: editHeadline, bio: editBio });
+      navigate('/profile');
+    } catch (err) {
+      setError(err.message || 'Could not save profile');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -35,6 +45,9 @@ const ProfileEditPage = () => {
 
         <Card className="bg-white p-6 border border-outline-variant shadow-sm">
           <form onSubmit={handleSaveProfile} className="space-y-5">
+            {error && (
+              <div className="px-4 py-2 rounded-lg bg-red-500/10 text-red-500 text-xs font-medium">{error}</div>
+            )}
             <InputField
               label="Full Name"
               value={editName}
@@ -71,8 +84,8 @@ const ProfileEditPage = () => {
               <Button type="button" onClick={() => navigate('/profile')} variant="outline" size="sm">
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" size="sm">
-                Save Changes
+              <Button type="submit" variant="primary" size="sm" disabled={saving}>
+                {saving ? 'Saving…' : 'Save Changes'}
               </Button>
             </div>
           </form>
