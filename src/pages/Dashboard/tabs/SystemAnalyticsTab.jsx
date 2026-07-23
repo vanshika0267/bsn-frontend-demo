@@ -3,12 +3,7 @@ import Card from '../../../components/common/Card';
 import { FiCpu, FiDatabase, FiHardDrive, FiActivity } from 'react-icons/fi';
 
 const SystemAnalyticsTab = () => {
-  const diagnostics = [
-    { name: 'API Server Response (FastAPI)', value: '38ms', status: 'Optimal', icon: FiActivity, color: 'text-green-600 bg-green-50' },
-    { name: 'Database Latency (PostgreSQL)', value: '4.2ms', status: 'Optimal', icon: FiDatabase, color: 'text-green-600 bg-green-50' },
-    { name: 'CPU Utilization (AWS EC2)', value: '14.8%', status: 'Low load', icon: FiCpu, color: 'text-green-600 bg-green-50' },
-    { name: 'Object Storage Capacity', value: '412.8 GB', status: '12% Used', icon: FiHardDrive, color: 'text-blue-600 bg-blue-50' }
-  ];
+  const diagnostics = [];
 
   return (
     <div className="space-y-6">

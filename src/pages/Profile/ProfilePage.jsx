@@ -13,12 +13,13 @@ import InputField from '../../components/common/InputField';
 import Modal from '../../components/common/Modal';
 import Badge from '../../components/common/Badge';
 import GitHubConnect from '../../components/github/GitHubConnect';
-
-const getDefaultAvatar = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=eff6ff&color=1e40af&size=200&bold=true`;
+import Avatar from '../../components/common/Avatar';
+import CoverBanner from '../../components/common/CoverBanner';
 
 const ProfilePage = () => {
   const { user, updateProfile } = useApp();
   const navigate = useNavigate();
+  const hasProfilePicture = Boolean(user.profilePicture && user.profilePicture.toString().trim());
   
   // Profile Picture Modal states
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -160,8 +161,7 @@ const ProfilePage = () => {
   const handleRemoveAvatar = () => {
     setAvatarError('');
     setAvatarSuccess(false);
-    const defaultAv = getDefaultAvatar(user.name);
-    setAvatarPreview(defaultAv);
+    setAvatarPreview('');
   };
 
   const handleCopyLink = () => {
@@ -321,10 +321,10 @@ const ProfilePage = () => {
           
           {/* Cover Photo */}
           <div className="group/cover h-40 sm:h-52 w-full overflow-hidden relative">
-            <img 
-              src={user.coverBanner} 
-              alt="Profile cover banner" 
-              className="w-full h-full object-cover filter brightness-95"
+            <CoverBanner
+              src={user.coverBanner}
+              alt="Profile cover banner"
+              className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             
@@ -348,10 +348,10 @@ const ProfilePage = () => {
                 className="group relative cursor-pointer overflow-hidden rounded-xl w-24 h-24 sm:w-28 sm:h-28 ring-4 ring-white shadow-lg shrink-0 transition-transform duration-300 hover:scale-105"
                 title="Click to update profile picture"
               >
-                <img 
-                  src={user.profilePicture} 
-                  alt={user.name} 
-                  className="w-full h-full object-cover"
+                <Avatar
+                  src={user.profilePicture}
+                  alt={user.name}
+                  className="rounded-xl"
                 />
                 <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white gap-1 select-none">
                   <FiCamera size={18} className="animate-pulse" />
@@ -397,7 +397,7 @@ const ProfilePage = () => {
             <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm">
               <h3 className="text-sm font-bold text-on-surface mb-2.5 font-poppins">About Me</h3>
               <p className="text-xs text-on-surface-variant leading-relaxed font-light whitespace-pre-line">
-                {user.bio}
+                {user.bio || "No bio added yet."}
               </p>
             </div>
 
@@ -414,24 +414,28 @@ const ProfilePage = () => {
                 </button>
               </div>
               <div className="space-y-3.5">
-                {user.skills.map((skill, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <div className="flex justify-between items-center text-xs font-semibold text-on-surface-variant">
-                      <span>{skill.name}</span>
-                      <span className="text-[10px] text-primary font-bold bg-[#eff6ff] px-1.5 py-0.5 rounded border border-primary/20">
-                        {skill.level}
-                      </span>
+                {user.skills && user.skills.length > 0 ? (
+                  user.skills.map((skill, idx) => (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs font-semibold text-on-surface-variant">
+                        <span>{skill.name}</span>
+                        <span className="text-[10px] text-primary font-bold bg-[#eff6ff] px-1.5 py-0.5 rounded border border-primary/20">
+                          {skill.level}
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${skill.value}%` }}
+                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                          className="h-full rounded-full bg-primary"
+                        />
+                      </div>
                     </div>
-                    <div className="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${skill.value}%` }}
-                        transition={{ duration: 0.8, ease: 'easeOut' }}
-                        className="h-full rounded-full bg-primary"
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-xs text-on-surface-variant font-medium">No skills added yet.</p>
+                )}
               </div>
             </div>
 
@@ -448,11 +452,15 @@ const ProfilePage = () => {
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {user.interests.map((interest, idx) => (
-                  <span key={idx} className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-surface border border-outline-variant text-on-surface-variant">
-                    {interest}
-                  </span>
-                ))}
+                {user.interests && user.interests.length > 0 ? (
+                  user.interests.map((interest, idx) => (
+                    <span key={idx} className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-surface border border-outline-variant text-on-surface-variant">
+                      {interest}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-xs text-on-surface-variant font-medium">No interests added yet.</p>
+                )}
               </div>
             </div>
 
@@ -470,17 +478,20 @@ const ProfilePage = () => {
                 <FiAward className="text-primary" size={16} /> Accomplishments & Awards
               </h3>
               
-              <div className="relative pl-5 border-l border-outline-variant space-y-5">
-                {user.achievements.map((ach) => (
-                  <div key={ach.id} className="relative space-y-1">
-                    {/* Time indicator Dot */}
-                    <span className="absolute -left-[25.5px] top-1.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-white"></span>
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-wide">{ach.date}</span>
-                    <h4 className="text-xs font-bold text-on-surface">{ach.title}</h4>
-                    <p className="text-[11px] text-on-surface-variant leading-relaxed font-light">{ach.description}</p>
-                  </div>
-                ))}
-              </div>
+              {user.achievements && user.achievements.length > 0 ? (
+                <div className="relative pl-5 border-l border-outline-variant space-y-5">
+                  {user.achievements.map((ach) => (
+                    <div key={ach.id} className="relative space-y-1">
+                      <span className="absolute -left-[25.5px] top-1.5 w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-white"></span>
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-wide">{ach.date}</span>
+                      <h4 className="text-xs font-bold text-on-surface">{ach.title}</h4>
+                      <p className="text-[11px] text-on-surface-variant leading-relaxed font-light">{ach.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-on-surface-variant font-medium">No accomplishments added yet.</p>
+              )}
             </div>
 
             {/* Shared Resources */}
@@ -490,23 +501,27 @@ const ProfilePage = () => {
               </h3>
               
               <div className="space-y-3">
-                {user.sharedResources.map((res) => (
-                  <div key={res.id} className="p-3 bg-surface border border-outline-variant rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-[#eff6ff] border border-primary/20 flex items-center justify-center text-primary text-base shrink-0 select-none">
-                        📄
+                {user.sharedResources && user.sharedResources.length > 0 ? (
+                  user.sharedResources.map((res) => (
+                    <div key={res.id} className="p-3 bg-surface border border-outline-variant rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-[#eff6ff] border border-primary/20 flex items-center justify-center text-primary text-base shrink-0 select-none">
+                          📄
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-on-surface">{res.title}</h4>
+                          <p className="text-[10px] text-on-surface-variant mt-0.5">Category: {res.category} • {res.fileSize}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-xs font-bold text-on-surface">{res.title}</h4>
-                        <p className="text-[10px] text-on-surface-variant mt-0.5">Category: {res.category} • {res.fileSize}</p>
+                      <div className="flex items-center gap-4 text-[10px] text-on-surface-variant shrink-0 font-medium">
+                        <span>Downloads: <strong>{res.downloads}</strong></span>
+                        <span>Likes: <strong>{res.likes}</strong></span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-[10px] text-on-surface-variant shrink-0 font-medium">
-                      <span>Downloads: <strong>{res.downloads}</strong></span>
-                      <span>Likes: <strong>{res.likes}</strong></span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-xs text-on-surface-variant font-medium">No resources uploaded yet.</p>
+                )}
               </div>
             </div>
 

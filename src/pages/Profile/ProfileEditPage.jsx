@@ -41,7 +41,7 @@ const ProfileEditPage = () => {
               onChange={(e) => setEditName(e.target.value)}
               required
               id="edit-name"
-              placeholder="e.g. Alex Rivera"
+              placeholder="Enter your full name"
             />
             
             <InputField

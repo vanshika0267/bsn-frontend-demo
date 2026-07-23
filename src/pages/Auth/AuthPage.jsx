@@ -354,12 +354,7 @@ export default function AuthPage({ initialMode }) {
   };
 
   const handleGoogleSignIn = () => {
-    setLoading(true);
-    // Autofill with the mock student persona
-    login('alex.rivera@university.edu', 'secret123')
-      .then(() => navigate('/dashboard', { replace: true }))
-      .catch(() => setError('OAuth simulation failed'))
-      .finally(() => setLoading(false));
+    setError('Social login is not available. Please sign in with email and password.');
   };
 
   const getEyeIcon = (isVisible, toggleFunc) => (

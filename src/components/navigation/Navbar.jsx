@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiBell, FiSearch, FiLogOut, FiUser, FiSettings, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
+import { FiBell, FiSearch, FiLogOut, FiSettings, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import Avatar from '../common/Avatar';
 
 const Navbar = ({ onMenuClick, isSidebarOpen }) => {
   const { user, userRole, logout, notifications, searchQuery, setSearchQuery, settings, updateSettings } = useApp();
@@ -89,11 +90,9 @@ const Navbar = ({ onMenuClick, isSidebarOpen }) => {
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center gap-2 focus:outline-none p-1 rounded-lg hover:bg-surface-container transition-colors"
           >
-            <img 
-              src={user.profilePicture} 
-              alt={user.name} 
-              className="w-8 h-8 rounded-lg object-cover ring-2 ring-primary/20"
-            />
+            <div className="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-primary/20">
+              <Avatar src={user.profilePicture} alt={user.name} className="w-full h-full" />
+            </div>
             <div className="text-left hidden lg:block pr-1">
               <p className="text-xs font-semibold text-on-surface leading-tight">{user.name}</p>
               <p className="text-[10px] text-on-surface-variant">Score: {user.impactScore}</p>

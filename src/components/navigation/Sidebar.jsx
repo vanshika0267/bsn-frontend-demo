@@ -24,14 +24,6 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-[#0f172a]/30 backdrop-blur-sm lg:hidden"
-          onClick={onClose}
-        ></div>
-      )}
-
       {/* Sidebar Panel */}
       <aside 
         className={`fixed top-0 bottom-0 left-0 z-30 w-64 bg-white border-r border-outline-variant pt-16 pb-5 flex flex-col justify-between transition-transform duration-300 ${

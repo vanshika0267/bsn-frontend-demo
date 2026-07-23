@@ -20,9 +20,9 @@ const LearningHubTab = () => {
     navigate(`/syllabus/edit?courseId=${course.id}`);
   };
 
-  const totalProgress = Math.round(
-    courses.reduce((acc, course) => acc + calculateProgress(course.modules), 0) / courses.length
-  );
+  const totalProgress = courses.length > 0
+    ? Math.round(courses.reduce((acc, course) => acc + calculateProgress(course.modules), 0) / courses.length)
+    : 0;
 
   return (
     <div className="space-y-6 text-left">

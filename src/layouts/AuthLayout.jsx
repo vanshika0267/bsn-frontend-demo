@@ -74,37 +74,37 @@ const AuthLayout = ({ children }) => {
           >
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold font-poppins">AR</div>
+                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold font-poppins">SP</div>
                 <div>
-                  <h4 className="text-xs font-bold text-on-surface">Alex Rivera</h4>
-                  <p className="text-[10px] text-on-surface-variant">MIT • Computer Science</p>
+                  <h4 className="text-xs font-bold text-on-surface">Student Profile</h4>
+                  <p className="text-[10px] text-on-surface-variant">Verified Institutional Account</p>
                 </div>
               </div>
               <div className="px-2.5 py-1 rounded bg-[#f0fdf4] border border-[#bbf7d0] text-[10px] font-bold text-[#166534]">
-                Score: 840
+                Verified
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">
                 <span>Verification Badges</span>
-                <span className="text-primary">95% Profile Completed</span>
+                <span className="text-primary">Skills & Badges</span>
               </div>
               <div className="flex gap-2">
-                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-container-high text-on-surface-variant border border-outline-variant">React.js</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-container-high text-on-surface-variant border border-outline-variant">PyTorch</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#eff6ff] text-[#1e40af] border border-[#bfdbfe]">★ BioPay Developer</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-container-high text-on-surface-variant border border-outline-variant">Academic Credit</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface-container-high text-on-surface-variant border border-outline-variant">Projects</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#eff6ff] text-[#1e40af] border border-[#bfdbfe]">★ Peer Verified</span>
               </div>
             </div>
 
             <div className="pt-2">
               <div className="p-3 bg-surface rounded-lg border border-outline-variant flex items-center justify-between gap-4">
                 <div>
-                  <h5 className="text-xs font-bold text-on-surface">BioPay Contactless Wallet</h5>
-                  <p className="text-[10px] text-on-surface-variant mt-0.5">Awarded 1st place in MIT Hackathon</p>
+                  <h5 className="text-xs font-bold text-on-surface">Academic Identity & Portfolio</h5>
+                  <p className="text-[10px] text-on-surface-variant mt-0.5">Showcase projects, achievements, & resources</p>
                 </div>
                 <div className="text-[10px] font-bold text-on-surface-variant bg-surface-container border border-outline-variant px-2 py-1 rounded">
-                  ★ 45 Stars
+                  Active
                 </div>
               </div>
             </div>
