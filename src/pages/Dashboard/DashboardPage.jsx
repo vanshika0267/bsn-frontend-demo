@@ -21,7 +21,7 @@ import {
   collegeStudents, collegeVerifications, 
   platformUsers, platformSystemLogs 
 } from '../../data/roleMockData';
-import { myOpportunities, getApplicants } from '../../services/api';
+import { myOpportunities, getApplicants, adminStats, getScore, studentsLeaderboard, myResources, listOpportunities } from '../../services/api';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import StatCard from '../../components/cards/StatCard';
 import ActivityCard from '../../components/cards/ActivityCard';
@@ -106,12 +106,46 @@ const DashboardPage = () => {
     return () => { cancelled = true; };
   }, [dashboardWidgets]);
 
+  // Admin overview (platform KPIs) from real stats.
+  useEffect(() => {
+    if (!(dashboardWidgets || []).includes('platform-kpi-stats')) return;
+    let cancelled = false;
+    adminStats().then((st) => { if (!cancelled) setAdminOverview(st); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [dashboardWidgets]);
+
+  // Student overview (score, rank, resources, upcoming opportunities) from real data.
+  useEffect(() => {
+    if (!(dashboardWidgets || []).includes('student-kpi-stats')) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [scoreRes, board, mine, opps] = await Promise.all([
+          getScore(user.id).catch(() => ({ impact_score: 0 })),
+          studentsLeaderboard().catch(() => []),
+          myResources().catch(() => ({ count: 0 })),
+          listOpportunities().catch(() => []),
+        ]);
+        const rankEntry = (board || []).find((r) => r.id === user.id);
+        if (!cancelled) setStudentOverview({
+          score: scoreRes.impact_score || 0,
+          rank: rankEntry ? rankEntry.rank : null,
+          resourceCount: mine.count || 0,
+          opps: opps || [],
+        });
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [dashboardWidgets, user.id]);
+
   // Local States for Interactive Widgets
   const [leaderboard] = useState(initialLeaderboard);
   const [resources, setResources] = useState(initialLearningResources);
   const [teamPosts] = useState(initialTeamPosts);
   const [activities, setActivities] = useState(initialActivity);
   const [recOverview, setRecOverview] = useState({ postings: [], totalApplicants: 0, underReview: 0, accepted: 0, recent: [] });
+  const [adminOverview, setAdminOverview] = useState(null);
+  const [studentOverview, setStudentOverview] = useState({ score: 0, rank: null, resourceCount: 0, opps: [] });
 
   // Upload Resource Modal state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -244,23 +278,22 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard 
                       title="Impact Score" 
-                      value={user.impactScore} 
-                      subtitle={`${user.badge} Badge`} 
+                      value={studentOverview.score} 
+                      subtitle="Points earned" 
                       icon={FiTrendingUp} 
-                      progress={user.impactProgress} 
                       color="blue"
                     />
                     <StatCard 
                       title="Rank Position" 
-                      value={`#${user.rank}`} 
-                      subtitle="In college community" 
+                      value={studentOverview.rank ? `#${studentOverview.rank}` : '—'} 
+                      subtitle="On the leaderboard" 
                       icon={FiAward} 
                       color="purple"
                     />
                     <StatCard 
-                      title="Resource Statistics" 
-                      value="2 Shared" 
-                      subtitle="1,194 Total Downloads" 
+                      title="Resources Shared" 
+                      value={`${studentOverview.resourceCount} Shared`} 
+                      subtitle="Your uploads" 
                       icon={FiBookOpen} 
                       color="green"
                     />
@@ -353,22 +386,22 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard 
                       title="Total Users" 
-                      value="2,410" 
-                      subtitle="+24% new signups" 
+                      value={adminOverview ? adminOverview.total_users : '…'} 
+                      subtitle={adminOverview ? `${adminOverview.new_users_last_7_days} new this week` : ''} 
                       icon={FiUsers} 
                       color="blue"
                     />
                     <StatCard 
-                      title="Accredited Colleges" 
-                      value="3 Active" 
-                      subtitle="Domain verified" 
+                      title="Total Opportunities" 
+                      value={adminOverview ? adminOverview.total_opportunities : '…'} 
+                      subtitle="Across the platform" 
                       icon={FiGrid} 
                       color="purple"
                     />
                     <StatCard 
-                      title="Pending Moderation" 
-                      value="6 Listings" 
-                      subtitle="Jobs & posts vetting" 
+                      title="Resources Pending" 
+                      value={adminOverview ? adminOverview.resources_pending_review : '…'} 
+                      subtitle="Awaiting review" 
                       icon={FiShield} 
                       color="green"
                     />
@@ -580,22 +613,22 @@ const DashboardPage = () => {
                     </div>
                     
                     <div className="space-y-4 overflow-y-auto max-h-[580px] pr-1 no-scrollbar">
-                      {opportunitiesList.slice(0, 3).map((opp) => (
+                      {studentOverview.opps.slice(0, 3).map((opp) => (
                         <div key={opp.id} className="p-3.5 bg-surface rounded-lg border border-outline-variant hover:border-primary transition-all flex flex-col gap-2">
                           <div className="flex items-start gap-2.5">
                             <div className="w-8 h-8 rounded-lg bg-surface-container border border-outline-variant flex items-center justify-center text-base shrink-0 select-none">
-                              {opp.logo}
+                              <FiBriefcase size={14} className="text-primary" />
                             </div>
                             <div>
                               <h4 className="text-xs font-bold text-on-surface hover:text-primary transition-colors cursor-pointer line-clamp-1">
                                 {opp.title}
                               </h4>
-                              <p className="text-[10px] text-on-surface-variant font-semibold">{opp.host}</p>
+                              <p className="text-[10px] text-on-surface-variant font-semibold">{opp.company}</p>
                             </div>
                           </div>
                           <div className="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant text-[10px] text-on-surface-variant/70">
-                            <span>Deadline: <strong className="text-error font-semibold">{opp.deadline}</strong></span>
-                            <span className="font-bold text-primary uppercase tracking-wide">{opp.type}</span>
+                            <span className="capitalize">{(opp.category || '').replace('_', ' ')}</span>
+                            <span className="font-bold text-primary uppercase tracking-wide">{opp.stipend || opp.prize || ''}</span>
                           </div>
                         </div>
                       ))}
