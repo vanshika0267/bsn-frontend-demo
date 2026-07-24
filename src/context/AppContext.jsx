@@ -6,7 +6,7 @@ import {
   learningResources as initialResources,
   teamFinderPosts as initialTeams
 } from '../data/mockData';
-import { apiLogin, apiRegister, apiGetMe, setToken, getToken } from '../services/api';
+import { apiLogin, apiRegister, apiGetMe, setToken, getToken, becomeAlumnus as apiBecomeAlumnus } from '../services/api';
 import { getSavedGitHubUsername, saveGitHubUsername as storageSaveGitHubUsername } from '../utils/github';
 import { detectRoleFromEmail } from '../utils/roleDetection';
 
@@ -21,6 +21,9 @@ const ROLE_LABELS = {
   faculty: 'Faculty',
 };
 const roleLabel = (backendRole) => ROLE_LABELS[String(backendRole || '').toLowerCase()] || 'Student';
+// Verified alumni land in the Senior/Alumni portal regardless of their base role.
+const labelForUser = (me) =>
+  (me && me.is_alumni && me.alumni_verified) ? 'Senior/Alumni' : roleLabel(me && me.role);
 
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -121,7 +124,7 @@ export const AppProvider = ({ children }) => {
     }
     apiGetMe()
       .then((me) => {
-        const label = roleLabel(me.role);
+        const label = labelForUser(me);
         const fetched = { ...initialUser, ...me, role: label };
         if (savedUser) {
           const parsedSaved = JSON.parse(savedUser);
@@ -145,7 +148,7 @@ export const AppProvider = ({ children }) => {
   const login = async (email, password) => {
     await apiLogin(email, password);           // stores JWT (throws on bad credentials)
     const me = await apiGetMe();               // fetch the real user (includes role)
-    const label = roleLabel(me.role);          // role comes from the backend
+    const label = labelForUser(me);          // role comes from the backend
     const loggedUser = { ...initialUser, ...me, role: label, email: me.email || email };
     setUser(loggedUser);
     setUserRole(label);
@@ -156,10 +159,22 @@ export const AppProvider = ({ children }) => {
 
   // REAL register, then auto-login
   const register = async (regData) => {
-    const { name, email, password, university, college } = regData;
+    const { name, email, password, university, college, is_alumni, graduation_year } = regData;
     const collegeName = university || college || 'BioPay University';
-    await apiRegister({ name, email, password, college: collegeName });
+    await apiRegister({ name, email, password, college: collegeName, is_alumni, graduation_year });
     await login(email, password);
+  };
+
+  // A current student opts to become an alumnus (auto-approved); switch to the Senior portal.
+  const becomeAlumnus = async () => {
+    await apiBecomeAlumnus();
+    const me = await apiGetMe();
+    const label = labelForUser(me);
+    const updated = { ...user, ...me, role: label };
+    setUser(updated);
+    setUserRole(label);
+    localStorage.setItem('bsn_user', JSON.stringify(updated));
+    return label;
   };
 
   const logout = () => {
@@ -209,6 +224,7 @@ export const AppProvider = ({ children }) => {
       setBookedSessionsCount,
       login,
       register,
+      becomeAlumnus,
       logout,
       markNotificationAsRead,
       markAllNotificationsAsRead,

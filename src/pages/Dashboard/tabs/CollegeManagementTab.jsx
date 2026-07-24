@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import Card from '../../../components/common/Card';
-import Table from '../../../components/common/Table';
-import Badge from '../../../components/common/Badge';
+import EmptyState from '../../../components/common/EmptyState';
 import InputField from '../../../components/common/InputField';
 import Modal from '../../../components/common/Modal';
 import { FiPlus, FiGrid } from 'react-icons/fi';
@@ -13,13 +11,6 @@ const CollegeManagementTab = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newCol = {
-      id: `col_${colleges.length + 1}`,
-      name: form.name,
-      domain: form.domain,
-      verifiedCount: 0
-    };
-    setColleges([...colleges, newCol]);
     setIsModalOpen(false);
     setForm({ name: '', domain: '' });
   };
@@ -39,28 +30,10 @@ const CollegeManagementTab = () => {
         </button>
       </div>
 
-      <Table 
-        headers={['Institution', 'Domain Whitelist', 'Verified Accounts', 'Status']}
-        data={colleges}
-        renderRow={(col) => (
-          <tr key={col.id} className="hover:bg-surface transition-colors">
-            <td className="px-6 py-4">
-              <div className="flex items-center gap-2">
-                <FiGrid className="text-primary shrink-0" size={16} />
-                <span className="font-bold text-on-surface">{col.name}</span>
-              </div>
-            </td>
-            <td className="px-6 py-4">
-              <code className="text-xs bg-surface px-2 py-1 rounded border border-outline-variant font-mono text-primary font-bold">
-                @{col.domain}
-              </code>
-            </td>
-            <td className="px-6 py-4 font-bold">{col.verifiedCount} Students</td>
-            <td className="px-6 py-4">
-              <Badge variant="success">Whitelisted</Badge>
-            </td>
-          </tr>
-        )}
+      <EmptyState
+        icon={FiGrid}
+        title="No colleges registered yet"
+        description="Whitelisted institutions and their verified account counts will appear here once colleges are added."
       />
 
       {isModalOpen && (

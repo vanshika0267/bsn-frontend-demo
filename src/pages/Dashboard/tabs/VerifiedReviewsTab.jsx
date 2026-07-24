@@ -1,3 +1,8 @@
+import React from 'react';
+import EmptyState from '../../../components/common/EmptyState';
+import { FiStar } from 'react-icons/fi';
+
+const VerifiedReviewsTab = () => {
 import React, { useState } from 'react';
 import { useApp } from '../../../context/AppContext';
 import Card from '../../../components/common/Card';
@@ -74,6 +79,11 @@ const VerifiedReviewsTab = () => {
         <p className="text-xs text-on-surface-variant">Read and write validated reviews for academic courses and recruiting internships. Access restricted to verified student accounts.</p>
       </div>
 
+      <EmptyState
+        icon={FiStar}
+        title="No reviews yet"
+        description="Verified reviews for courses and internships will appear here once students start submitting them."
+      />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left Side: Program Selection List */}
