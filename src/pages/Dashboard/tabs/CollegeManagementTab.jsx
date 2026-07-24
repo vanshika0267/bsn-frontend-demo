@@ -5,6 +5,7 @@ import Modal from '../../../components/common/Modal';
 import { FiPlus, FiGrid } from 'react-icons/fi';
 
 const CollegeManagementTab = () => {
+  const [colleges, setColleges] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ name: '', domain: '' });
 

@@ -104,6 +104,13 @@ const NotificationsPage = () => {
         <div className="flex gap-2 overflow-x-auto pb-1.5 no-scrollbar shrink-0 border-b border-outline-variant">
           {categories.map((cat) => {
             const count = cat === 'Unread' ? unreadCount : notifications.length;
+            // Calculate specific count per category
+            const count = cat === 'All'
+              ? notifications.length
+              : cat === 'Unread'
+              ? unreadCount
+              : notifications.filter(n => n.type === cat).length;
+
             const isActive = activeCategory === cat;
 
             return (

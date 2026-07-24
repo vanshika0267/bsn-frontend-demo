@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiBell, FiSearch, FiLogOut, FiUser, FiSettings, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import Avatar from '../common/Avatar';
 
-const Navbar = ({ onMenuClick }) => {
-  const { user, logout, notifications, searchQuery, setSearchQuery, settings, updateSettings } = useApp();
+const Navbar = ({ onMenuClick, isSidebarOpen }) => {
+  const { user, userRole, logout, notifications, searchQuery, setSearchQuery, settings, updateSettings } = useApp();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  const isProfilePage = location.pathname === '/profile' || location.pathname.startsWith('/profile');
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleLogout = () => {
@@ -18,11 +21,14 @@ const Navbar = ({ onMenuClick }) => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white border-b border-outline-variant px-4 py-2 flex items-center justify-between">
-      {/* Left: Mobile Menu Toggle & Brand */}
+      {/* Left: Mobile & Desktop Menu Toggle & Brand */}
       <div className="flex items-center gap-3">
         <button 
           onClick={onMenuClick}
-          className="p-2 hover:bg-surface-container rounded-lg text-on-surface-variant hover:text-on-surface lg:hidden focus:outline-none"
+          className="p-2 hover:bg-surface-container rounded-lg text-on-surface-variant hover:text-on-surface focus:outline-none transition-colors"
+          title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+          aria-label="Toggle Navigation Sidebar"
+          id="universal-sidebar-toggle"
         >
           <FiMenu size={20} />
         </button>
@@ -31,7 +37,7 @@ const Navbar = ({ onMenuClick }) => {
             <span className="font-poppins font-extrabold text-white text-lg tracking-wider">B</span>
           </div>
           <span className="font-poppins font-bold text-xl tracking-tight text-on-surface hidden sm:block">
-            BSN <span className="text-primary text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/10 ml-1">STUDENT</span>
+            BSN <span className="text-primary text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/10 ml-1 uppercase">{userRole || user?.role || 'Student'}</span>
           </span>
         </Link>
       </div>
@@ -86,11 +92,9 @@ const Navbar = ({ onMenuClick }) => {
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center gap-2 focus:outline-none p-1 rounded-lg hover:bg-surface-container transition-colors"
           >
-            <img 
-              src={user.profilePicture} 
-              alt={user.name} 
-              className="w-8 h-8 rounded-lg object-cover ring-2 ring-primary/20"
-            />
+            <div className="w-8 h-8 rounded-lg overflow-hidden ring-2 ring-primary/20">
+              <Avatar src={user.profilePicture} alt={user.name} className="w-full h-full" />
+            </div>
             <div className="text-left hidden lg:block pr-1">
               <p className="text-xs font-semibold text-on-surface leading-tight">{user.name}</p>
               <p className="text-[10px] text-on-surface-variant">Score: {user.impactScore}</p>
@@ -114,14 +118,16 @@ const Navbar = ({ onMenuClick }) => {
                   </div>
                   
                   <div className="p-1">
-                    <Link 
-                      to="/profile" 
-                      onClick={() => setShowProfileMenu(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors"
-                    >
-                      <FiUser size={16} className="text-primary" />
-                      My Profile
-                    </Link>
+                    {!isProfilePage && (
+                      <Link 
+                        to="/profile" 
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors"
+                      >
+                        <FiUser size={16} className="text-primary" />
+                        My Profile
+                      </Link>
+                    )}
                     <Link 
                       to="/settings" 
                       onClick={() => setShowProfileMenu(false)}

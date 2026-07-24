@@ -15,21 +15,16 @@ const BottomNav = () => {
     { name: 'Settings', path: '/settings', icon: FiSettings, isTab: false }
   ];
 
+  const visibleNavItems = navItems;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-45 bg-white border-t border-outline-variant px-4 py-2 flex items-center justify-around lg:hidden shadow-lg">
-      {navItems.map((item, idx) => {
-        let isActive = false;
-        
-        if (item.isTab) {
-          isActive = location.pathname === '/dashboard' && currentTab === item.tabName;
-        } else {
-          // If accessing dashboard, ensure tab is overview/none
-          if (item.path === '/dashboard') {
-            isActive = location.pathname === '/dashboard' && currentTab === 'overview';
-          } else {
-            isActive = location.pathname === item.path;
-          }
-        }
+      {visibleNavItems.map((item, idx) => {
+        const isActive = item.isTab
+          ? (location.pathname === '/dashboard' && currentTab === item.tabName)
+          : (item.path === '/dashboard'
+              ? (location.pathname === '/dashboard' && currentTab === 'overview')
+              : (location.pathname === item.path || (item.path === '/profile' && location.pathname.startsWith('/profile'))));
 
         const Icon = item.icon;
 

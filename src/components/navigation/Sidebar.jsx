@@ -24,17 +24,9 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-[#0f172a]/30 backdrop-blur-sm lg:hidden"
-          onClick={onClose}
-        ></div>
-      )}
-
       {/* Sidebar Panel */}
       <aside 
-        className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-white border-r border-outline-variant pt-20 lg:pt-5 pb-5 flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-30 w-64 bg-white border-r border-outline-variant pt-16 pb-5 flex flex-col justify-between transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -49,13 +41,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Navigation Links */}
         <div className="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto no-scrollbar">
           {menuItems.map((item, idx) => {
-            // Determine active state based on route path and queries
-            let isActive = false;
-            if (item.tab) {
-              isActive = location.pathname === '/dashboard' && currentTab === item.tab;
-            } else {
-              isActive = location.pathname === item.path;
-            }
+            const isActive = item.tab
+              ? (location.pathname === '/dashboard' && currentTab === item.tab)
+              : (location.pathname === item.path || (item.path === '/profile' && location.pathname.startsWith('/profile')));
 
             const Icon = item.icon;
 

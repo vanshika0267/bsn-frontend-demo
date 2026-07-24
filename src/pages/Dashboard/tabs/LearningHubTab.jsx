@@ -23,6 +23,19 @@ const LearningHubTab = () => {
       .finally(() => active && setLoading(false));
     return () => { active = false; };
   }, []);
+  const calculateProgress = (modules) => {
+    if (!modules || modules.length === 0) return 0;
+    const completedCount = modules.filter(m => m.completed).length;
+    return Math.round((completedCount / modules.length) * 100);
+  };
+
+  const handleOpenCourse = (course) => {
+    navigate(`/syllabus/edit?courseId=${course.id}`);
+  };
+
+  const totalProgress = courses.length > 0
+    ? Math.round(courses.reduce((acc, course) => acc + calculateProgress(course.modules), 0) / courses.length)
+    : 0;
 
   return (
     <div className="space-y-6 text-left">

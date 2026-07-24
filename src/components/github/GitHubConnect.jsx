@@ -14,15 +14,6 @@ export default function GitHubConnect() {
   const [error, setError] = useState(null);
   const [syncMeta, setSyncMeta] = useState(() => getSyncMeta());
 
-  useEffect(() => {
-    const saved = getSavedGitHubUsername();
-    if (saved && !username) {
-      setInput(saved);
-      handleConnect(saved);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const handleConnect = async (rawInput) => {
     const toParse = rawInput ?? input;
     setError(null);
@@ -57,6 +48,15 @@ export default function GitHubConnect() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const saved = getSavedGitHubUsername();
+    if (saved && !username) {
+      setInput(saved);
+      handleConnect(saved);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRefresh = () => {
     if (username) handleConnect(username);

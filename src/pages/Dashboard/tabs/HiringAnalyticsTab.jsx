@@ -32,6 +32,8 @@ const HiringAnalyticsTab = () => {
     return acc;
   }, {});
   const categoryEntries = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
+  const metrics = [];
+  const funnel = [];
 
   return (
     <div className="space-y-6">
@@ -86,6 +88,10 @@ const HiringAnalyticsTab = () => {
           </Card>
         </>
       )}
+      <Card className="py-14 text-center border-dashed">
+        <h3 className="text-sm font-bold text-on-surface mb-2">Hiring analytics are not available yet</h3>
+        <p className="text-xs text-on-surface-variant">This section will display real recruitment metrics once data has been synchronized from the backend.</p>
+      </Card>
     </div>
   );
 };

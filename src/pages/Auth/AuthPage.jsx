@@ -4,7 +4,43 @@ import { useApp } from '../../context/AppContext';
 import { detectRoleFromEmail, ROLE_META } from '../../utils/roleDetection';
 import Login3DBackground from '../../components/auth/Login3DBackground';
 import logo from '../../assets/logo.png';
-import { FiSun, FiMoon, FiCheck, FiArrowLeft } from 'react-icons/fi';
+import { FiSun, FiMoon, FiCheck, FiArrowLeft, FiShield, FiClock } from 'react-icons/fi';
+import { sendRegistrationOTP, verifyRegistrationOTP, resendRegistrationOTP } from '../../services/api';
+
+const isRecognisedCollege = (name) => {
+  if (!name) return false;
+  const lower = name.toLowerCase().trim();
+  const keywords = ['university', 'institute', 'college', 'iit', 'mit', 'stanford', 'harvard', 'caltech', 'berkeley', 'oxford', 'tsinghua', 'upes'];
+  return keywords.some(k => lower.includes(k));
+};
+
+const isGraduationYearInPast = (endYearStr) => {
+  if (!endYearStr) return false;
+  const cleaned = endYearStr.trim().toLowerCase();
+  const parsedTime = Date.parse(cleaned);
+  const now = new Date(2026, 6, 23); // Current date is July 23, 2026 (Month is 0-indexed, so 6 is July)
+  if (!isNaN(parsedTime)) {
+    return new Date(parsedTime) < now;
+  }
+  const yearMatch = cleaned.match(/\b(19|20)\d{2}\b/);
+  if (yearMatch) {
+    const year = parseInt(yearMatch[0], 10);
+    if (year < 2026) return true;
+    if (year > 2026) return false;
+    const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    let monthIdx = -1;
+    for (let i = 0; i < months.length; i++) {
+      if (cleaned.includes(months[i])) {
+        monthIdx = i;
+        break;
+      }
+    }
+    if (monthIdx !== -1) {
+      return monthIdx < 6;
+    }
+  }
+  return false;
+};
 
 const validatePassword = (pw) => {
   return {
@@ -39,7 +75,7 @@ const PasswordChecklist = ({ password }) => {
           }`}>
             {item.met ? '✓' : '•'}
           </span>
-          <span className={item.met ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}>
+          <span className={item.met ? 'text-emerald-650 dark:text-emerald-400 font-semibold' : 'text-slate-500 dark:text-slate-400'}>
             {item.label}
           </span>
         </div>
@@ -51,7 +87,7 @@ const PasswordChecklist = ({ password }) => {
 export default function AuthPage({ initialMode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, register, settings, updateSettings } = useApp();
+  const { login, register, settings, updateSettings, setUserRole, updateProfile } = useApp();
 
   // Derive mode from URL
   const urlMode = location.pathname.includes('register') || location.pathname.includes('signup') ? 'register' : 'login';
@@ -71,6 +107,14 @@ export default function AuthPage({ initialMode }) {
   // Register Step 1 fields
   const [name, setName] = useState('');
 
+  // Frontend Email OTP Verification States
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpInput, setOtpInput] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpMessage, setOtpMessage] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   // Register Step 2 — role-specific fields
   const [collegeName, setCollegeName] = useState('');
   const [startYear, setStartYear] = useState('');
@@ -82,6 +126,17 @@ export default function AuthPage({ initialMode }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Mentorship/Alumni registration options
+  const [registerAsAlumni, setRegisterAsAlumni] = useState(false);
+  const [registerAsSenior, setRegisterAsSenior] = useState(false);
+
+  // Resend Cooldown Timer Effect (60 seconds)
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => setResendCooldown(prev => prev - 1), 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const resetFormFields = () => {
     setEmail('');
@@ -98,6 +153,14 @@ export default function AuthPage({ initialMode }) {
     setTerms(false);
     setError('');
     setLoading(false);
+    setRegisterAsAlumni(false);
+    setRegisterAsSenior(false);
+    setOtpSent(false);
+    setOtpVerified(false);
+    setOtpInput('');
+    setOtpLoading(false);
+    setOtpMessage('');
+    setResendCooldown(0);
   };
 
   /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
@@ -125,6 +188,70 @@ export default function AuthPage({ initialMode }) {
     navigate(m === 'register' ? '/signup' : '/login', { replace: true });
   };
 
+  // TODO: Integrate with backend API (POST /auth/send-registration-otp)
+  const handleSendOTP = async (e) => {
+    if (e) e.preventDefault();
+    setError('');
+    setOtpMessage('');
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address first');
+      return;
+    }
+
+    setOtpLoading(true);
+    try {
+      const res = await sendRegistrationOTP(email);
+      setOtpSent(true);
+      setResendCooldown(60);
+      setOtpInput('');
+      setOtpMessage(res.message || `A verification code has been sent to ${email}.`);
+    } catch (err) {
+      setError(err.message || 'Failed to send OTP.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // TODO: Integrate with backend API (POST /auth/verify-registration-otp)
+  const handleVerifyOTP = async () => {
+    setError('');
+    setOtpMessage('');
+    if (!otpInput || otpInput.trim().length !== 6) {
+      setError('Please enter a valid 6-digit verification code.');
+      return;
+    }
+
+    setOtpLoading(true);
+    try {
+      const res = await verifyRegistrationOTP(email, otpInput);
+      setOtpVerified(true);
+      setOtpMessage(res.message || 'Email verified successfully!');
+    } catch (err) {
+      setError(err.message || 'OTP verification failed.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // TODO: Integrate with backend API (POST /auth/resend-registration-otp)
+  const handleResendOTP = async () => {
+    if (resendCooldown > 0) return;
+    setError('');
+    setOtpMessage('');
+    setOtpLoading(true);
+    try {
+      const res = await resendRegistrationOTP(email);
+      setOtpSent(true);
+      setResendCooldown(60);
+      setOtpInput('');
+      setOtpMessage(res.message || `A new verification code has been sent to ${email}.`);
+    } catch (err) {
+      setError(err.message || 'Failed to resend OTP.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -135,6 +262,19 @@ export default function AuthPage({ initialMode }) {
     setLoading(true);
     try {
       await login(email, password);
+      // Case 2: Auto-detect graduated student on login
+      const savedUserStr = localStorage.getItem('bsn_user');
+      if (savedUserStr) {
+        const loggedUser = JSON.parse(savedUserStr);
+        const role = loggedUser.role || 'Student';
+        if (role === 'Student' || role === 'Student + Senior') {
+          const gradYear = loggedUser.endYear || loggedUser.graduationYear;
+          if (gradYear && isGraduationYearInPast(gradYear)) {
+            setUserRole('Senior/Alumni');
+            updateProfile({ role: 'Senior/Alumni' });
+          }
+        }
+      }
       // Redirection after successful login directly to the main BSN dashboard
       navigate('/dashboard', { replace: true });
     } catch (err) {
@@ -144,7 +284,7 @@ export default function AuthPage({ initialMode }) {
     }
   };
 
-  // Register Step 1: Validate → silently detect role → proceed to Step 2
+  // Register Step 1: Validate → check email verification → proceed to Step 2
   const handleRegisterContinue = (e) => {
     e.preventDefault();
     setError('');
@@ -154,6 +294,10 @@ export default function AuthPage({ initialMode }) {
     }
     if (!email.includes('@')) {
       setError('Please enter a valid email address');
+      return;
+    }
+    if (!otpVerified) {
+      setError('Verify your email before registering.');
       return;
     }
     // Silent background role detection
@@ -202,6 +346,26 @@ export default function AuthPage({ initialMode }) {
       return;
     }
 
+    // Determine custom role locally based on graduation year and choices
+    let determinedRole = 'Student';
+    if (role === 'student') {
+      if (isGraduationYearInPast(endYear.trim())) {
+        determinedRole = 'Senior/Alumni';
+      } else {
+        determinedRole = registerAsSenior ? 'Student + Senior' : 'Student';
+      }
+    } else if (role === 'recruiter') {
+      if (collegeName.trim() && isRecognisedCollege(collegeName.trim()) && registerAsAlumni) {
+        determinedRole = 'Recruiter + Alumni';
+      } else {
+        determinedRole = 'Recruiter';
+      }
+    } else if (role === 'faculty') {
+      determinedRole = 'Faculty';
+    } else if (role === 'admin') {
+      determinedRole = 'Platform Admin';
+    }
+
     setLoading(true);
     try {
       const university = collegeName.trim() || institutionName.trim() || companyName.trim() || 'BioPay University';
@@ -209,7 +373,7 @@ export default function AuthPage({ initialMode }) {
         name: name.trim(),
         email,
         password,
-        role,
+        role: role,
         college: university,
         university: university,
         graduationYear: endYear.trim(),
@@ -221,6 +385,11 @@ export default function AuthPage({ initialMode }) {
         company: companyName.trim()
       };
       await register(data);
+      
+      // Override role locally to support our custom persona mapping
+      setUserRole(determinedRole);
+      updateProfile({ role: determinedRole });
+
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed');
@@ -277,15 +446,6 @@ export default function AuthPage({ initialMode }) {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    setLoading(true);
-    // Autofill with the mock student persona
-    login('alex.rivera@university.edu', 'secret123')
-      .then(() => navigate('/dashboard', { replace: true }))
-      .catch(() => setError('OAuth simulation failed'))
-      .finally(() => setLoading(false));
-  };
-
   const getEyeIcon = (isVisible, toggleFunc) => (
     <button
       type="button"
@@ -308,7 +468,14 @@ export default function AuthPage({ initialMode }) {
 
   const renderMessage = () => {
     if (!error) return null;
-    const isSuccess = typeof error === 'object' && error.success;
+    if (typeof error === 'object' && error.props) {
+      return (
+        <div className="text-[13px] border px-4 py-3 rounded-xl text-red-700 bg-red-50/80 dark:text-red-300 dark:bg-red-950/50 border-red-200/60 dark:border-red-500/30">
+          {error}
+        </div>
+      );
+    }
+    const isSuccess = typeof error === 'object' && error !== null && error.success;
     return (
       <div className={`text-[13px] border px-4 py-3 rounded-xl ${
         isSuccess
@@ -335,12 +502,12 @@ export default function AuthPage({ initialMode }) {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 rounded-xl bsn-input placeholder:text-slate-400 dark:placeholder:text-slate-500 text-[14px] transition-all duration-200";
-  const labelClass = "block text-[13px] font-semibold text-slate-700 dark:text-slate-350 mb-1.5 font-sans";
-  const btnPrimaryClass = "w-full py-3.5 px-6 rounded-xl font-bold text-white text-[14px] bg-[#2563EB] hover:bg-[#1D4ED8] dark:bg-[#2563EB] dark:hover:bg-[#1D4ED8] shadow-[0_4px_20px_rgba(37,99,235,0.15)] hover:shadow-[0_6px_25px_rgba(37,99,235,0.25)] hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5";
+  const inputClass = "w-full px-3.5 py-2.5 rounded-xl bsn-input placeholder:text-slate-400 dark:placeholder:text-slate-500 text-[13px] sm:text-[14px] transition-all duration-200";
+  const labelClass = "block text-[12px] sm:text-[13px] font-semibold text-slate-700 dark:text-slate-350 mb-1 font-sans";
+  const btnPrimaryClass = "w-full py-3 px-5 rounded-xl font-bold text-white text-[14px] bg-[#2563EB] hover:bg-[#1D4ED8] dark:bg-[#2563EB] dark:hover:bg-[#1D4ED8] shadow-[0_4px_20px_rgba(37,99,235,0.15)] hover:shadow-[0_6px_25px_rgba(37,99,235,0.25)] hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5";
 
   return (
-    <div className="min-h-screen bg-background text-on-surface flex flex-col lg:flex-row relative overflow-hidden font-sans selection:bg-primary/20 bg-grid-pattern bg-noise text-left transition-colors duration-300">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen bg-background text-on-surface flex flex-col lg:flex-row relative overflow-x-hidden overflow-y-auto lg:overflow-hidden font-sans selection:bg-primary/20 bg-grid-pattern bg-noise text-left transition-colors duration-300">
       <Outlet />
       {/* 3D Animation Background spanning across BOTH Left Hero and Right Login/Register section */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
@@ -353,65 +520,65 @@ export default function AuthPage({ initialMode }) {
       <div className="absolute -bottom-32 -right-32 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[100px] sm:blur-[130px] pointer-events-none z-0 animate-pulse-glow" />
 
       {/* Floating Theme Switch Toggle Button */}
-      <div className="absolute top-6 right-6 z-50">
+      <div className="absolute top-5 right-5 z-50">
         <button
           type="button"
           onClick={() => updateSettings('darkMode', !settings.darkMode)}
-          className="p-2.5 bg-white/40 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-full text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer backdrop-blur-md shadow-sm"
+          className="p-2 bg-white/40 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-full text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer backdrop-blur-md shadow-sm"
           title={settings.darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           aria-label="Toggle dark mode"
         >
-          {settings.darkMode ? <FiSun size={16} className="text-amber-400" /> : <FiMoon size={16} />}
+          {settings.darkMode ? <FiSun size={15} className="text-amber-400" /> : <FiMoon size={15} />}
         </button>
       </div>
 
       {/* Left Hero Section */}
-      <div className="relative w-full lg:w-[54%] xl:w-[56%] min-h-[380px] lg:min-h-screen flex flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 z-10 order-1">
+      <div className="relative w-full lg:w-[50%] xl:w-[52%] min-h-[300px] lg:h-full flex flex-col justify-between p-5 sm:p-8 lg:p-10 xl:p-12 z-10 order-1">
         {/* Brand Header */}
         <header className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <img
               src={logo}
               alt="BioPay Student Network logo"
-              className="w-11 h-11 object-contain drop-shadow-[0_4px_18px_rgba(37,99,235,0.45)]"
+              className="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow-[0_4px_18px_rgba(37,99,235,0.45)]"
             />
             <div>
-              <div className="text-[20px] font-sans font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">BioPay</div>
-              <div className="text-slate-500 dark:text-slate-400 text-[12px] font-medium">Student Network</div>
+              <div className="text-[18px] sm:text-[20px] font-sans font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">BioPay</div>
+              <div className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-[12px] font-medium">Student Network</div>
             </div>
           </div>
         </header>
 
         {/* Hero Content */}
-        <main className="relative z-10 my-auto py-10 lg:py-16 max-w-[540px]">
-          <h1 className="font-poppins text-[36px] sm:text-[46px] xl:text-[52px] leading-[1.08] font-bold tracking-tight text-slate-900 dark:text-white">
+        <main className="relative z-10 my-auto py-4 lg:py-6 max-w-[500px]">
+          <h1 className="font-poppins text-[30px] sm:text-[40px] xl:text-[46px] leading-[1.08] font-bold tracking-tight text-slate-900 dark:text-white">
             One campus identity.<br />
-            <span className="bg-gradient-to-r from-[#10B981] to-[#34D399] bg-clip-text text-transparent block mt-2">
+            <span className="bg-gradient-to-r from-[#10B981] to-[#34D399] bg-clip-text text-transparent block mt-1.5">
               Every opportunity.
             </span>
           </h1>
-          <p className="text-slate-650 dark:text-slate-350 text-[15px] sm:text-[16px] leading-relaxed mt-5 max-w-[460px] font-sans font-medium">
+          <p className="text-slate-650 dark:text-slate-350 text-[14px] sm:text-[15px] leading-relaxed mt-4 max-w-[440px] font-sans font-medium">
             Build your verified academic identity, showcase real achievements, and unlock internships, opportunities, and recognition — all in one place.
           </p>
 
-          <div className="mt-8 pt-8 border-t border-slate-200/50 dark:border-slate-800/50 grid grid-cols-3 gap-4 sm:gap-6 max-w-[460px]">
+          <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-800/50 grid grid-cols-3 gap-3 sm:gap-5 max-w-[440px]">
             <div>
-              <div className="text-[20px] sm:text-[22px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Verified Identity</div>
-              <div className="text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">College-confirmed profile</div>
+              <div className="text-[18px] sm:text-[20px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Verified Identity</div>
+              <div className="text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">College-confirmed profile</div>
             </div>
             <div>
-              <div className="text-[20px] sm:text-[22px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Merit Scoring</div>
-              <div className="text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">Earn as you contribute</div>
+              <div className="text-[18px] sm:text-[20px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Merit Scoring</div>
+              <div className="text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">Earn as you contribute</div>
             </div>
             <div>
-              <div className="text-[20px] sm:text-[22px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Opportunity Match</div>
-              <div className="text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">Internships & more</div>
+              <div className="text-[18px] sm:text-[20px] font-poppins font-bold text-slate-900 dark:text-white tracking-tight">Opportunity Match</div>
+              <div className="text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-450 mt-0.5 font-medium">Internships & more</div>
             </div>
           </div>
         </main>
 
         {/* Bottom Meta */}
-        <footer className="relative z-10 hidden sm:flex items-center gap-6 text-[12px] text-slate-500 dark:text-slate-400 font-semibold">
+        <footer className="relative z-10 hidden sm:flex items-center gap-5 text-[11px] sm:text-[12px] text-slate-500 dark:text-slate-400 font-semibold">
           <span className="flex items-center gap-1.5"><FiCheck className="text-emerald-500" /> Verified Student Profiles</span>
           <span className="flex items-center gap-1.5"><FiCheck className="text-emerald-500" /> Merit-Based Recognition</span>
           <span className="flex items-center gap-1.5"><FiCheck className="text-emerald-500" /> BSN by ConnectBioPay</span>
@@ -419,15 +586,15 @@ export default function AuthPage({ initialMode }) {
       </div>
 
       {/* Right Auth Card Section */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12 z-10 order-2 relative">
-        <div className="relative z-10 w-full max-w-[440px] bg-white/60 dark:bg-slate-950/40 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-800/50 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.05),0_0_30px_rgba(37,99,235,0.02)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.5),0_0_40px_rgba(37,99,235,0.1)] p-6 sm:p-9 transition-all duration-300">
+      <div className="flex-1 lg:h-full flex items-center justify-center p-4 sm:p-6 lg:p-8 z-10 order-2 relative">
+        <div className="relative z-10 w-full max-w-[420px] bg-white/60 dark:bg-slate-950/40 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-800/50 rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.05),0_0_30px_rgba(37,99,235,0.02)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.5),0_0_40px_rgba(37,99,235,0.1)] p-5 sm:p-7 transition-all duration-300">
           {/* Segmented Tab Bar */}
           {mode !== 'forgot' && (
-            <div className="relative flex bg-slate-100/80 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/60 mb-7 backdrop-blur-md">
+            <div className="relative flex bg-slate-100/80 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/60 mb-5 backdrop-blur-md">
               <button
                 type="button"
                 onClick={() => switchMode('login')}
-                className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-bold transition-colors duration-200 rounded-xl ${
+                className={`relative z-10 flex-1 py-2 text-center text-[13px] sm:text-[14px] font-bold transition-colors duration-200 rounded-xl ${
                   mode === 'login' ? 'text-white' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
@@ -436,7 +603,7 @@ export default function AuthPage({ initialMode }) {
               <button
                 type="button"
                 onClick={() => switchMode('register')}
-                className={`relative z-10 flex-1 py-2.5 text-center text-[13px] sm:text-[14px] font-bold transition-colors duration-200 rounded-xl ${
+                className={`relative z-10 flex-1 py-2 text-center text-[13px] sm:text-[14px] font-bold transition-colors duration-200 rounded-xl ${
                   mode === 'register' ? 'text-white' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
                 }`}
               >
@@ -452,8 +619,8 @@ export default function AuthPage({ initialMode }) {
           )}
 
           {/* Card Header — changes based on mode & step */}
-          <div className="mb-6">
-            <h2 className="font-poppins text-[24px] sm:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight">
+          <div className="mb-4">
+            <h2 className="font-poppins text-[22px] sm:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight">
               {mode === 'login'
                 ? 'Welcome back'
                 : mode === 'forgot'
@@ -533,22 +700,95 @@ export default function AuthPage({ initialMode }) {
 
           {/* ════════════════════ REGISTER — STEP 1 ════════════════════ */}
           {mode === 'register' && registerStep === 1 && (
-            <form onSubmit={handleRegisterContinue} className="space-y-5">
+            <form onSubmit={handleRegisterContinue} className="space-y-4">
               <div>
-                <label htmlFor="reg-email" className={labelClass}>
-                  Official Email Address
-                </label>
-                <input
-                  id="reg-email"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@organization.com"
-                  className={inputClass}
-                  autoComplete="email"
-                  required
-                />
+                <div className="flex justify-between items-center mb-1 font-sans">
+                  <label htmlFor="reg-email" className={labelClass}>
+                    Official Email Address
+                  </label>
+                  {otpVerified && (
+                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-500/20 px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-emerald-300/40 shadow-xs">
+                      ✓ Verified
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    id="reg-email"
+                    type="email"
+                    value={email}
+                    onChange={e => {
+                      setEmail(e.target.value);
+                      if (otpVerified) setOtpVerified(false);
+                      if (otpSent) setOtpSent(false);
+                    }}
+                    placeholder="you@organization.com"
+                    className={`${inputClass} ${(otpSent || otpVerified) ? 'bg-slate-100/70 dark:bg-slate-900/70 text-slate-500 border-emerald-500/40 cursor-default' : ''}`}
+                    autoComplete="email"
+                    readOnly={otpSent || otpVerified}
+                    required
+                  />
+                  {!otpVerified && !otpSent && email && email.includes('@') && (
+                    <button
+                      type="button"
+                      onClick={handleSendOTP}
+                      disabled={otpLoading}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 rounded-lg transition-all cursor-pointer shadow-sm"
+                    >
+                      {otpLoading ? 'Sending...' : 'Send OTP'}
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {/* OTP Verification Section (Shown after clicking Send OTP) */}
+              {!otpVerified && otpSent && (
+                <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/50 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <FiShield className="text-primary" /> Enter 6-Digit Verification Code
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={otpInput}
+                      onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
+                      placeholder="• • • • • •"
+                      className="flex-1 px-3 py-2 text-center text-base tracking-widest font-mono font-bold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/30"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyOTP}
+                      disabled={otpLoading || otpInput.length !== 6}
+                      className="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded-lg transition-all cursor-pointer shadow-sm"
+                    >
+                      {otpLoading ? 'Verifying...' : 'Verify OTP'}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                    <span>Didn't receive the email?</span>
+                    <button
+                      type="button"
+                      onClick={handleResendOTP}
+                      disabled={resendCooldown > 0 || otpLoading}
+                      className="font-bold text-blue-600 dark:text-blue-400 hover:underline disabled:text-slate-400 disabled:no-underline cursor-pointer flex items-center gap-1"
+                    >
+                      <FiClock size={11} />
+                      {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+                    </button>
+                  </div>
+
+                  {otpMessage && (
+                    <div className="text-[11px] text-blue-700 dark:text-blue-300 font-semibold bg-blue-100/60 dark:bg-blue-900/40 p-2 rounded-lg border border-blue-300/40">
+                      {otpMessage}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label htmlFor="reg-name" className={labelClass}>
@@ -568,7 +808,8 @@ export default function AuthPage({ initialMode }) {
 
               <button
                 type="submit"
-                className={btnPrimaryClass}
+                disabled={!otpVerified}
+                className={`${btnPrimaryClass} ${!otpVerified ? 'opacity-50 cursor-not-allowed hover:scale-100' : ''}`}
               >
                 Continue
               </button>
@@ -633,9 +874,43 @@ export default function AuthPage({ initialMode }) {
                       I've already graduated — sign me up as an <strong>alumnus</strong> to mentor students.
                     </span>
                   </label>
+                  {endYear && !isGraduationYearInPast(endYear) && (
+                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 mt-2 transition-all">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Would you like to mentor your juniors as a Senior?
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        This enables mentorship features, student Q&A, and senior guidance tabs on your dashboard.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsSenior(true)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            registerAsSenior 
+                              ? 'bg-primary text-white shadow-sm' 
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750'
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsSenior(false)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            !registerAsSenior 
+                              ? 'bg-primary text-white shadow-sm' 
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750'
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-
+ 
               {/* ── Faculty fields ── */}
               {detectedRoleForRegister === 'faculty' && (
                 <div className="pt-2">
@@ -649,18 +924,63 @@ export default function AuthPage({ initialMode }) {
                   />
                 </div>
               )}
-
+ 
               {/* ── Recruiter fields ── */}
               {detectedRoleForRegister === 'recruiter' && (
-                <div className="pt-2">
-                  <label className={labelClass}>Company Name</label>
-                  <input
-                    value={companyName}
-                    onChange={e => setCompanyName(e.target.value)}
-                    placeholder="e.g. Google"
-                    className={inputClass}
-                    required
-                  />
+                <div className="space-y-3 pt-2">
+                  <div>
+                    <label className={labelClass}>Company Name</label>
+                    <input
+                      value={companyName}
+                      onChange={e => setCompanyName(e.target.value)}
+                      placeholder="e.g. Google"
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>College / University (Optional)</label>
+                    <input
+                      value={collegeName}
+                      onChange={e => setCollegeName(e.target.value)}
+                      placeholder="e.g. Stanford University"
+                      className={inputClass}
+                    />
+                  </div>
+                  {collegeName && isRecognisedCollege(collegeName) && (
+                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 mt-2 transition-all">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Would you also like to register as an Alumni Mentor for this institution?
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        This will display Alumni mentorship features and Q&A resources alongside your Recruiter tools.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsAlumni(true)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            registerAsAlumni 
+                              ? 'bg-primary text-white shadow-sm' 
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750'
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRegisterAsAlumni(false)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            !registerAsAlumni 
+                              ? 'bg-primary text-white shadow-sm' 
+                              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750'
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -811,33 +1131,7 @@ export default function AuthPage({ initialMode }) {
             </form>
           )}
 
-          {/* Social login separator & Google OAuth */}
-          {mode === 'login' && (
-            <>
-              <div className="relative flex items-center justify-center my-5">
-                <div className="absolute inset-x-0 h-[1px] bg-slate-200/55 dark:bg-slate-800/60"></div>
-                <span className="relative px-3 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 bg-[#fdfdfe] dark:bg-[#080d19] tracking-wider transition-colors duration-300">
-                  Or connect with
-                </span>
-              </div>
-
-              <button
-                onClick={handleGoogleSignIn}
-                type="button"
-                className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:bg-slate-100/60 dark:hover:bg-slate-900/65 px-4 py-3.5 text-sm font-bold text-slate-800 dark:text-white transition-all cursor-pointer shadow-sm hover:shadow-[0_4px_15px_rgba(0,0,0,0.02)]"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path
-                    fill="#EA4335"
-                    d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.484 0-6.29-2.905-6.29-6.514 0-3.61 2.806-6.515 6.29-6.515 1.5 0 2.87.525 3.96 1.485l3.15-3.15C18.17 1.05 15.345 0 12.24 0 5.865 0 .685 5.25.685 12c0 6.75 5.18 12 11.555 12 6.51 0 11.235-4.47 11.235-11.22 0-.705-.075-1.395-.195-2.07H12.24z"
-                  />
-                </svg>
-                Google OAuth
-              </button>
-            </>
-          )}
-
-          <div className="text-center text-[12px] text-slate-500 dark:text-slate-450 mt-6 font-medium">
+          <div className="text-center text-[11px] text-slate-500 dark:text-slate-450 mt-4 font-medium">
             © {new Date().getFullYear()} BioPay Student Network • v2.0
           </div>
         </div>

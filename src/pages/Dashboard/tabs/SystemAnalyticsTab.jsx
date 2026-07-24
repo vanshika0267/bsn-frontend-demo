@@ -23,6 +23,7 @@ const SystemAnalyticsTab = () => {
   }, []);
 
   const roles = (stats && stats.roles) || {};
+  const diagnostics = [];
 
   return (
     <div className="space-y-6">

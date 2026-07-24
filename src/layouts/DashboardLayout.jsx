@@ -7,7 +7,16 @@ import { Navigate } from 'react-router-dom';
 
 const DashboardLayout = ({ children }) => {
   const { isAuthenticated } = useApp();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024;
+    }
+    return true;
+  });
+
+  const toggleSidebar = () => {
+    setSidebarOpen(prev => !prev);
+  };
 
   // Protected Route Check for Prototype
   if (!isAuthenticated) {
@@ -17,14 +26,18 @@ const DashboardLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans">
       {/* Top Navbar */}
-      <Navbar onMenuClick={() => setSidebarOpen(true)} />
+      <Navbar onMenuClick={toggleSidebar} isSidebarOpen={sidebarOpen} />
 
       <div className="flex-1 flex relative">
-        {/* Navigation Sidebar (fixed on desktop, slide drawer on mobile) */}
+        {/* Navigation Sidebar */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         {/* Scrollable Main Content Frame */}
-        <main className="flex-1 min-w-0 lg:pl-64 flex flex-col pb-20 lg:pb-0">
+        <main 
+          className={`flex-1 min-w-0 transition-[padding] duration-300 flex flex-col pb-20 lg:pb-0 ${
+            sidebarOpen ? 'lg:pl-64' : 'lg:pl-0'
+          }`}
+        >
           <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto overflow-y-auto">
             {children}
           </div>

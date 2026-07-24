@@ -3,6 +3,8 @@ import EmptyState from '../../../components/common/EmptyState';
 import { FiDownload, FiAward } from 'react-icons/fi';
 
 const PlacementReportsTab = () => {
+  const departments = [];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -20,6 +22,12 @@ const PlacementReportsTab = () => {
         title="No placement data yet"
         description="Placement rates, stipends, and recruiter activity will appear here once students are placed."
       />
+      <div className="grid grid-cols-1 gap-6">
+        <Card className="py-14 text-center border-dashed">
+          <h3 className="text-sm font-bold text-on-surface mb-2">Placement reports are not available yet</h3>
+          <p className="text-xs text-on-surface-variant">This section will display actual placement analytics after campus recruitment data has been loaded.</p>
+        </Card>
+      </div>
     </div>
   );
 };
