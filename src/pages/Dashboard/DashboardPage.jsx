@@ -33,6 +33,7 @@ import Select from '../../components/common/Select';
 import EmptyState from '../../components/common/EmptyState';
 import Modal from '../../components/common/Modal';
 import Table from '../../components/common/Table';
+import Avatar from '../../components/common/Avatar';
 
 // Modular features components ported from teammate implementation
 import ResourceRepository from './tabs/ResourceRepository';
@@ -239,10 +240,15 @@ const DashboardPage = () => {
                   <div className="relative rounded-xl bg-primary-container text-white p-6 overflow-hidden shadow-lg">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
                     <div className="relative z-10 flex flex-col justify-between h-full gap-4">
-                      <div>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/95">Welcome Back, {user.role || 'Student'}</span>
-                        <h2 className="text-xl sm:text-2xl font-extrabold text-white mt-1 font-poppins">{user.name}</h2>
-                        <p className="text-xs text-white/90 font-medium mt-0.5">{user.college}</p>
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden ring-2 ring-white/40 shrink-0">
+                          <Avatar src={user.profilePicture} alt={user.name} className="w-full h-full" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/95">Welcome Back, {user.role || 'Student'}</span>
+                          <h2 className="text-xl sm:text-2xl font-extrabold text-white mt-1 font-poppins">{user.name}</h2>
+                          <p className="text-xs text-white/90 font-medium mt-0.5">{user.college}</p>
+                        </div>
                       </div>
                       <p className="text-xs text-white/80 italic max-w-md mt-1 leading-relaxed">
                         {user.role === 'Student' && "Your academic network holds the passport to the future. Keep sharing resources, verification scores will update shortly."}
