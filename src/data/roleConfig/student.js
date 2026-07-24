@@ -1,7 +1,16 @@
 import {
-  FiGrid, FiUser, FiBookOpen, FiAward, FiBriefcase,
-  FiCompass, FiUsers, FiBell, FiSettings, FiStar, FiMessageSquare,
-  FiTrophy, FiLayers
+  FiGrid,
+  FiUser,
+  FiBookOpen,
+  FiAward,
+  FiBriefcase,
+  FiCompass,
+  FiUsers,
+  FiBell,
+  FiSettings,
+  FiStar,
+  FiMessageSquare,
+  FiLayers
 } from 'react-icons/fi';
 
 export const studentConfig = {
@@ -12,7 +21,7 @@ export const studentConfig = {
     { name: 'Resources', path: '/dashboard?tab=resources', icon: FiBookOpen, tab: 'resources' },
     { name: 'Leaderboard', path: '/dashboard?tab=leaderboard', icon: FiAward, tab: 'leaderboard' },
     { name: 'Jobs', path: '/dashboard?tab=jobs', icon: FiBriefcase, tab: 'jobs' },
-    { name: 'Hackathons', path: '/dashboard?tab=hackathons', icon: FiTrophy, tab: 'hackathons' },
+    { name: 'Hackathons', path: '/dashboard?tab=hackathons', icon: FiAward, tab: 'hackathons' },
     { name: 'Opportunities', path: '/dashboard?tab=opportunities', icon: FiLayers, tab: 'opportunities' },
     { name: 'Learning Hub', path: '/dashboard?tab=learning-hub', icon: FiCompass, tab: 'learning-hub' },
     { name: 'Team Finder', path: '/dashboard?tab=team-finder', icon: FiUsers, tab: 'team-finder' },
