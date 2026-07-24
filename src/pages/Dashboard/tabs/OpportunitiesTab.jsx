@@ -8,25 +8,44 @@ import SearchBar from '../../../components/common/SearchBar';
 import Modal from '../../../components/common/Modal';
 import { FiMapPin, FiDollarSign, FiClock, FiFileText, FiCheckCircle, FiUsers, FiAward, FiCalendar, FiRefreshCw } from 'react-icons/fi';
 
-// Category filter tabs -> maps UI label to the API `category` value.
-// `undefined` means "All" (omit the category param).
-const CATEGORIES = [
+// Category presets for different scopes
+const CATEGORIES_ALL = [
   { label: 'All', value: undefined },
   { label: 'Internships', value: 'internship' },
   { label: 'Full-time', value: 'full_time' },
   { label: 'Hackathons', value: 'hackathon' },
 ];
 
+const CATEGORIES_JOBS = [
+  { label: 'All', value: undefined },
+  { label: 'Internships', value: 'internship' },
+  { label: 'Part-time', value: 'part_time' },
+  { label: 'Full-time', value: 'full_time' },
+];
+
+const CATEGORIES_HACKATHONS = [
+  { label: 'All', value: undefined },
+  { label: 'Hackathons', value: 'hackathon' },
+  { label: 'Competitions', value: 'competition' },
+  { label: 'Innovation Challenges', value: 'innovation_challenge' },
+];
+
 const CATEGORY_LABELS = {
   internship: 'Internship',
+  part_time: 'Part-time',
   full_time: 'Full-time',
   hackathon: 'Hackathon',
+  competition: 'Competition',
+  innovation_challenge: 'Innovation Challenge',
 };
 
 const categoryBadgeVariant = (category) => {
   switch (category) {
     case 'hackathon': return 'purple';
+    case 'competition': return 'purple';
+    case 'innovation_challenge': return 'purple';
     case 'internship': return 'primary';
+    case 'part_time': return 'primary';
     case 'full_time': return 'success';
     default: return 'default';
   }
@@ -39,8 +58,27 @@ const formatDate = (value) => {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-const OpportunitiesTab = () => {
+const OpportunitiesTab = ({ scope = 'all', pageTitle, pageDescription }) => {
   const { user } = useApp();
+
+  // Select category list based on scope
+  const categories = scope === 'jobs' ? CATEGORIES_JOBS : scope === 'hackathons' ? CATEGORIES_HACKATHONS : CATEGORIES_ALL;
+
+  // Default title/description based on scope
+  const defaultTitle = scope === 'jobs'
+    ? 'Jobs'
+    : scope === 'hackathons'
+      ? 'Hackathons & Competitions'
+      : 'Opportunities & Internships';
+
+  const defaultDescription = scope === 'jobs'
+    ? 'Browse internships, part-time, and full-time positions sourced for BioPay Network students.'
+    : scope === 'hackathons'
+      ? 'Discover hackathons, competitions, and innovation challenges to showcase your skills.'
+      : 'Sourced positions and software challenges vetted for BioPay Network students.';
+
+  const title = pageTitle || defaultTitle;
+  const description = pageDescription || defaultDescription;
 
   const [activeCategory, setActiveCategory] = useState(undefined);
   const [searchQuery, setSearchQuery] = useState('');
@@ -143,8 +181,8 @@ const OpportunitiesTab = () => {
     <div className="space-y-6">
       {/* Intro */}
       <div>
-        <h1 className="text-2xl font-bold font-poppins text-on-surface">Opportunities & Internships</h1>
-        <p className="text-xs text-on-surface-variant">Sourced positions and software challenges vetted for BioPay Network students.</p>
+        <h1 className="text-2xl font-bold font-poppins text-on-surface">{title}</h1>
+        <p className="text-xs text-on-surface-variant">{description}</p>
       </div>
 
       {/* Search & Category Tabs Panel */}
@@ -156,7 +194,7 @@ const OpportunitiesTab = () => {
         />
 
         <div className="flex flex-wrap gap-1.5 pt-1">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat.label}
               onClick={() => setActiveCategory(cat.value)}
@@ -201,7 +239,7 @@ const OpportunitiesTab = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filtered.map((opp) => {
             const applied = isApplied(opp);
-            const isHackathon = opp.category === 'hackathon';
+            const isHackathon = opp.category === 'hackathon' || opp.category === 'competition' || opp.category === 'innovation_challenge';
             return (
               <Card key={opp.id} hoverable={true} className="flex flex-col justify-between gap-4 bg-white text-left">
                 <div className="space-y-3.5">

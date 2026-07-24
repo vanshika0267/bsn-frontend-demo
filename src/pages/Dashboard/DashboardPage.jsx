@@ -61,6 +61,8 @@ import CollegeManagementTab from './tabs/CollegeManagementTab';
 import SystemReportsTab from './tabs/SystemReportsTab';
 import SystemAnalyticsTab from './tabs/SystemAnalyticsTab';
 import VerifiedReviewsTab from './tabs/VerifiedReviewsTab';
+import JobsTab from './tabs/JobsTab';
+import HackathonsTab from './tabs/HackathonsTab';
 
 const DashboardPage = () => {
   const { user, updateProfile, opportunitiesList, searchQuery } = useApp();
@@ -78,13 +80,6 @@ const DashboardPage = () => {
       navigate('/dashboard?tab=overview', { replace: true });
     }
   }, [currentTab, isAllowedTab, navigate]);
-
-  // Local States for Interactive Widgets
-  const [recOverview, setRecOverview] = useState({ postings: [], totalApplicants: 0, underReview: 0, accepted: 0, recent: [] });
-  const [leaderboard] = useState(initialLeaderboard);
-  const [resources, setResources] = useState(initialLearningResources);
-  const [teamPosts] = useState(initialTeamPosts);
-  const [activities, setActivities] = useState(initialActivity);
 
   // Load real recruiter overview data (postings + applicants) when applicable.
   useEffect(() => {
@@ -113,21 +108,12 @@ const DashboardPage = () => {
     return () => { cancelled = true; };
   }, [dashboardWidgets]);
 
-  const bookedSessionsCount = seniorMentorshipRequests.filter(r => r.status === 'Accepted' || r.status === 'Approved').length || seniorMentorshipRequests.length || 0;
-
-  const collegePlacementRate = collegeStudents.length
-    ? `${Math.round((collegeStudents.filter((s) => s.placed).length / collegeStudents.length) * 100)}%`
-    : 'N/A';
-  const accreditedCollegeCount = collegeStudents.length
-    ? new Set(collegeStudents.map((s) => s.college)).size
-    : 0;
-  const platformPendingModerationCount = platformSystemLogs.length || 0;
-  const resourceDownloadsTotal = user.sharedResources?.reduce((sum, res) => sum + (res.downloads || 0), 0) || 0;
-  const pipelineStages = [
-    { stage: 'Opportunities Listed', count: opportunitiesList.length, pct: opportunitiesList.length ? 100 : 0 },
-    { stage: 'Applications Received', count: recOverview.totalApplicants, pct: opportunitiesList.length ? Math.min(100, Math.round((recOverview.totalApplicants / opportunitiesList.length) * 100)) : 0 },
-    { stage: 'Offers Extended', count: recOverview.accepted, pct: recOverview.totalApplicants ? Math.min(100, Math.round((recOverview.accepted / recOverview.totalApplicants) * 100)) : 0 }
-  ];
+  // Local States for Interactive Widgets
+  const [leaderboard] = useState(initialLeaderboard);
+  const [resources, setResources] = useState(initialLearningResources);
+  const [teamPosts] = useState(initialTeamPosts);
+  const [activities, setActivities] = useState(initialActivity);
+  const [recOverview, setRecOverview] = useState({ postings: [], totalApplicants: 0, underReview: 0, accepted: 0, recent: [] });
 
   // Upload Resource Modal state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -275,8 +261,8 @@ const DashboardPage = () => {
                     />
                     <StatCard 
                       title="Resource Statistics" 
-                      value={`${user.sharedResources?.length || 0} Shared`} 
-                      subtitle={user.sharedResources?.length ? `${resourceDownloadsTotal} Total Downloads` : 'No shared resources yet'} 
+                      value="2 Shared" 
+                      subtitle="1,194 Total Downloads" 
                       icon={FiBookOpen} 
                       color="green"
                     />
@@ -288,22 +274,22 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard 
                       title="Consulted Hours" 
-                      value={`${bookedSessionsCount} Hours`} 
-                      subtitle="Total booked sessions" 
+                      value="12 Hours" 
+                      subtitle="2 sessions booked" 
                       icon={FiClock} 
                       color="blue"
                     />
                     <StatCard 
                       title="Doubts Answered" 
-                      value={`${seniorQuestions.length || 0} Questions`} 
-                      subtitle="Student questions answered" 
+                      value="28 Solved" 
+                      subtitle="Top 5% contributor" 
                       icon={FiMessageSquare} 
                       color="purple"
                     />
                     <StatCard 
                       title="Resource Uploads" 
-                      value={`${user.sharedResources?.length || 0} Guides`} 
-                      subtitle="Resources shared by you" 
+                      value="4 Guides" 
+                      subtitle="1,200 total downloads" 
                       icon={FiBookOpen} 
                       color="green"
                     />
@@ -342,22 +328,22 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard 
                       title="Verified Students" 
-                      value={`${collegeStudents.length || 0}`} 
-                      subtitle="Verified student accounts" 
+                      value="1,842" 
+                      subtitle="94% verification rate" 
                       icon={FiUsers} 
                       color="blue"
                     />
                     <StatCard 
                       title="Pending Badges" 
-                      value={`${collegeVerifications.length || 0} Requests`} 
-                      subtitle="Verification requests" 
+                      value="2 Requests" 
+                      subtitle="Awaiting credential sign" 
                       icon={FiCheckSquare} 
                       color="purple"
                     />
                     <StatCard 
                       title="Placement Rate" 
-                      value={collegePlacementRate} 
-                      subtitle="Based on available student data" 
+                      value="84.2%" 
+                      subtitle="Top recruiting term" 
                       icon={FiTrendingUp} 
                       color="green"
                     />
@@ -369,22 +355,22 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard 
                       title="Total Users" 
-                      value={`${platformUsers.length || 0}`} 
-                      subtitle="Registered platform accounts" 
+                      value="2,410" 
+                      subtitle="+24% new signups" 
                       icon={FiUsers} 
                       color="blue"
                     />
                     <StatCard 
                       title="Accredited Colleges" 
-                      value={`${accreditedCollegeCount}`} 
-                      subtitle="Distinct verified colleges" 
+                      value="3 Active" 
+                      subtitle="Domain verified" 
                       icon={FiGrid} 
                       color="purple"
                     />
                     <StatCard 
                       title="Pending Moderation" 
-                      value={`${platformPendingModerationCount} Items`} 
-                      subtitle="Pending audit entries" 
+                      value="6 Listings" 
+                      subtitle="Jobs & posts vetting" 
                       icon={FiShield} 
                       color="green"
                     />
@@ -414,23 +400,15 @@ const DashboardPage = () => {
                     <h3 className="text-sm font-bold text-on-surface mb-3.5 flex items-center gap-2">
                       <FiTrendingUp className="text-primary" size={16} /> Recruiting Pipeline Conversion
                     </h3>
-                    {pipelineStages.length > 0 ? (
-                      <div className="space-y-3">
-                        {pipelineStages.map((item, idx) => (
-                          <div key={idx} className="space-y-2">
-                            <div className="flex justify-between text-xs font-semibold">
-                              <span>{item.stage}</span>
-                              <span className="text-primary font-bold">{item.count}</span>
-                            </div>
-                            <div className="w-full bg-surface-container rounded-full h-2 overflow-hidden">
-                              <div className="bg-primary h-full rounded-full" style={{ width: `${item.pct}%` }}></div>
-                            </div>
-                          </div>
-                        ))}
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <span>Vetted Candidates &rarr; Interviewed</span>
+                        <span className="text-primary font-bold">33% Conversion</span>
                       </div>
-                    ) : (
-                      <p className="text-xs text-on-surface-variant">Pipeline metrics will appear once opportunity and applicant activity has been recorded.</p>
-                    )}
+                      <div className="w-full bg-surface-container rounded-full h-2 overflow-hidden">
+                        <div className="bg-primary h-full rounded-full" style={{ width: '33%' }}></div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -440,7 +418,14 @@ const DashboardPage = () => {
                     <h3 className="text-sm font-bold text-on-surface mb-3.5 flex items-center gap-2">
                       <FiClock className="text-primary" size={16} /> Open Mentorship Slots
                     </h3>
-                    <p className="text-xs text-on-surface-variant">Mentorship availability updates once seniors or alumni publish their open consultation slots.</p>
+                    <div className="flex flex-wrap gap-2.5">
+                      <div className="px-3.5 py-2 rounded-lg bg-surface border border-outline-variant text-xs font-semibold">
+                        Friday, 4:00 PM - 5:00 PM (1 Slot left)
+                      </div>
+                      <div className="px-3.5 py-2 rounded-lg bg-surface border border-outline-variant text-xs font-semibold">
+                        Monday, 10:00 AM - 11:30 AM (Open)
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -484,18 +469,14 @@ const DashboardPage = () => {
                       <FiUsers className="text-primary" size={16} /> Recent Activity Feed
                     </h3>
                     <div className="space-y-3">
-                      {activities && activities.length > 0 ? (
-                        activities.map((act) => (
-                          <ActivityCard 
-                            key={act.id}
-                            icon={act.icon}
-                            title={act.title}
-                            timestamp={act.timestamp}
-                          />
-                        ))
-                      ) : (
-                        <p className="text-xs text-on-surface-variant font-medium py-2">No recent activity.</p>
-                      )}
+                      {activities.map((act) => (
+                        <ActivityCard 
+                          key={act.id}
+                          icon={act.icon}
+                          title={act.title}
+                          timestamp={act.timestamp}
+                        />
+                      ))}
                     </div>
                   </div>
                 )}
@@ -507,19 +488,15 @@ const DashboardPage = () => {
                       <FiUsers className="text-primary" size={16} /> Recent Candidates Applied
                     </h3>
                     <div className="space-y-3.5">
-                      {recOverview.recent && recOverview.recent.length > 0 ? (
-                        recOverview.recent.map((app) => (
-                          <div key={app.id} className="flex items-center justify-between text-xs font-semibold border-b border-outline-variant pb-2.5 last:border-b-0 last:pb-0">
-                            <div>
-                              <p className="text-on-surface font-bold">{app.candidateName}</p>
-                              <p className="text-[10px] text-on-surface-variant">{app.jobTitle}</p>
-                            </div>
-                            <Badge variant="primary">{app.status}</Badge>
+                      {recOverview.recent.map((app) => (
+                        <div key={app.id} className="flex items-center justify-between text-xs font-semibold border-b border-outline-variant pb-2.5 last:border-b-0 last:pb-0">
+                          <div>
+                            <p className="text-on-surface font-bold">{app.candidateName}</p>
+                            <p className="text-[10px] text-on-surface-variant">{app.jobTitle}</p>
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-on-surface-variant font-medium py-2">No candidate applications yet.</p>
-                      )}
+                          <Badge variant="primary">{app.status}</Badge>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -531,19 +508,15 @@ const DashboardPage = () => {
                       <FiMessageSquare className="text-primary" size={16} /> Open Student Doubts
                     </h3>
                     <div className="space-y-3">
-                      {seniorQuestions && seniorQuestions.length > 0 ? (
-                        seniorQuestions.slice(0, 2).map((q) => (
-                          <div key={q.id} className="text-xs border-b border-outline-variant pb-3 last:border-b-0 last:pb-0 font-medium">
-                            <p className="font-bold text-on-surface">{q.question}</p>
-                            <div className="flex items-center justify-between mt-1 text-[10px] text-on-surface-variant font-semibold">
-                              <span>By: {q.studentName}</span>
-                              <span className="text-primary">{q.topic}</span>
-                            </div>
+                      {seniorQuestions.slice(0, 2).map((q) => (
+                        <div key={q.id} className="text-xs border-b border-outline-variant pb-3 last:border-b-0 last:pb-0 font-medium">
+                          <p className="font-bold text-on-surface">{q.question}</p>
+                          <div className="flex items-center justify-between mt-1 text-[10px] text-on-surface-variant font-semibold">
+                            <span>By: {q.studentName}</span>
+                            <span className="text-primary">{q.topic}</span>
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-on-surface-variant font-medium py-2">No open student doubts.</p>
-                      )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -555,19 +528,15 @@ const DashboardPage = () => {
                       <FiCheckSquare className="text-primary" size={16} /> Pending Badge Requests
                     </h3>
                     <div className="space-y-3">
-                      {collegeVerifications && collegeVerifications.length > 0 ? (
-                        collegeVerifications.map((req) => (
-                          <div key={req.id} className="flex items-center justify-between text-xs font-semibold border-b border-outline-variant pb-2.5 last:border-b-0 last:pb-0">
-                            <div>
-                              <p className="text-on-surface font-bold">{req.studentName}</p>
-                              <p className="text-[10px] text-on-surface-variant">{req.badgeName}</p>
-                            </div>
-                            <span className="text-[10px] text-primary">{req.submittedDate}</span>
+                      {collegeVerifications.map((req) => (
+                        <div key={req.id} className="flex items-center justify-between text-xs font-semibold border-b border-outline-variant pb-2.5 last:border-b-0 last:pb-0">
+                          <div>
+                            <p className="text-on-surface font-bold">{req.studentName}</p>
+                            <p className="text-[10px] text-on-surface-variant">{req.badgeName}</p>
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-on-surface-variant font-medium py-2">No pending verification requests.</p>
-                      )}
+                          <span className="text-[10px] text-primary">{req.submittedDate}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -579,19 +548,15 @@ const DashboardPage = () => {
                       <FiShield className="text-primary" size={16} /> Audit & Integrity Scan Alerts
                     </h3>
                     <div className="space-y-3">
-                      {platformSystemLogs && platformSystemLogs.length > 0 ? (
-                        platformSystemLogs.slice(0, 2).map((log) => (
-                          <div key={log.id} className="flex items-center justify-between text-xs font-semibold">
-                            <div>
-                              <p className="text-on-surface font-bold">{log.event}</p>
-                              <p className="text-[10px] text-on-surface-variant">{log.resource}</p>
-                            </div>
-                            <Badge variant={log.status === 'Passed' ? 'success' : 'primary'}>{log.status}</Badge>
+                      {platformSystemLogs.slice(0, 2).map((log) => (
+                        <div key={log.id} className="flex items-center justify-between text-xs font-semibold">
+                          <div>
+                            <p className="text-on-surface font-bold">{log.event}</p>
+                            <p className="text-[10px] text-on-surface-variant">{log.resource}</p>
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-on-surface-variant font-medium py-2">No audit or scan alerts.</p>
-                      )}
+                          <Badge variant={log.status === 'Passed' ? 'success' : 'primary'}>{log.status}</Badge>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -617,29 +582,25 @@ const DashboardPage = () => {
                     </div>
                     
                     <div className="space-y-4 overflow-y-auto max-h-[580px] pr-1 no-scrollbar">
-                      {opportunitiesList && opportunitiesList.length > 0 ? (
-                        opportunitiesList.slice(0, 3).map((opp) => (
-                          <div key={opp.id} className="p-3.5 bg-surface rounded-lg border border-outline-variant hover:border-primary transition-all flex flex-col gap-2">
-                            <div className="flex items-start gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-surface-container border border-outline-variant flex items-center justify-center text-base shrink-0 select-none">
-                                {opp.logo}
-                              </div>
-                              <div>
-                                <h4 className="text-xs font-bold text-on-surface hover:text-primary transition-colors cursor-pointer line-clamp-1">
-                                  {opp.title}
-                                </h4>
-                                <p className="text-[10px] text-on-surface-variant font-semibold">{opp.host}</p>
-                              </div>
+                      {opportunitiesList.slice(0, 3).map((opp) => (
+                        <div key={opp.id} className="p-3.5 bg-surface rounded-lg border border-outline-variant hover:border-primary transition-all flex flex-col gap-2">
+                          <div className="flex items-start gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-surface-container border border-outline-variant flex items-center justify-center text-base shrink-0 select-none">
+                              {opp.logo}
                             </div>
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant text-[10px] text-on-surface-variant/70">
-                              <span>Deadline: <strong className="text-error font-semibold">{opp.deadline}</strong></span>
-                              <span className="font-bold text-primary uppercase tracking-wide">{opp.type}</span>
+                            <div>
+                              <h4 className="text-xs font-bold text-on-surface hover:text-primary transition-colors cursor-pointer line-clamp-1">
+                                {opp.title}
+                              </h4>
+                              <p className="text-[10px] text-on-surface-variant font-semibold">{opp.host}</p>
                             </div>
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-on-surface-variant font-medium py-4 text-center">No upcoming opportunities available.</p>
-                      )}
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant text-[10px] text-on-surface-variant/70">
+                            <span>Deadline: <strong className="text-error font-semibold">{opp.deadline}</strong></span>
+                            <span className="font-bold text-primary uppercase tracking-wide">{opp.type}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -651,28 +612,31 @@ const DashboardPage = () => {
                       <FiBookOpen className="text-primary" size={16} /> Guidance Guides Uploaded
                     </h3>
                     <div className="space-y-3">
-                      <p className="text-xs text-on-surface-variant font-medium py-2">No guidance materials uploaded yet.</p>
+                      <div className="p-3 bg-surface rounded-lg border border-outline-variant">
+                        <h4 className="text-xs font-bold text-on-surface">Vetted Mock Interview Guide</h4>
+                        <p className="text-[10px] text-on-surface-variant mt-0.5 font-semibold">84 downloads today</p>
+                      </div>
+                      <div className="p-3 bg-surface rounded-lg border border-outline-variant">
+                        <h4 className="text-xs font-bold text-on-surface">System Architecture Cheat Sheet</h4>
+                        <p className="text-[10px] text-on-surface-variant mt-0.5 font-semibold">142 downloads today</p>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {/* Recruiter Active Listings widget */}
                 {dashboardWidgets.includes('active-postings-card') && (
-                  <div className="bg-[#ffffff] p-5 rounded-xl border border-outline-variant shadow-sm flex flex-col">
+                  <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm flex flex-col">
                     <h3 className="text-sm font-bold text-on-surface mb-4 flex items-center gap-2">
                       <FiBriefcase className="text-primary" size={16} /> Active Listings
                     </h3>
                     <div className="space-y-3">
-                      {recOverview.postings && recOverview.postings.length > 0 ? (
-                        recOverview.postings.map((job) => (
-                          <div key={job.id} className="p-3 bg-surface rounded-lg border border-outline-variant">
-                            <h4 className="text-xs font-bold text-on-surface">{job.title}</h4>
-                            <p className="text-[10px] text-on-surface-variant mt-0.5 font-semibold">{job.applicant_count} Applicants</p>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-on-surface-variant font-medium py-2">No active job listings.</p>
-                      )}
+                      {recOverview.postings.map((job) => (
+                        <div key={job.id} className="p-3 bg-surface rounded-lg border border-outline-variant">
+                          <h4 className="text-xs font-bold text-on-surface">{job.title}</h4>
+                          <p className="text-[10px] text-on-surface-variant mt-0.5 font-semibold">{job.applicant_count} Applicants</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -683,7 +647,16 @@ const DashboardPage = () => {
                     <h3 className="text-sm font-bold text-on-surface mb-4 flex items-center gap-2">
                       <FiTrendingUp className="text-primary" size={16} /> Top Corporate Partners
                     </h3>
-                    <p className="text-xs text-on-surface-variant">Placement partner details are shown here once recruitment data has been synchronized.</p>
+                    <div className="divide-y divide-outline-variant">
+                      <div className="py-2.5 flex items-center justify-between text-xs font-semibold">
+                        <span>Stripe</span>
+                        <span className="text-primary font-bold">6 Hires</span>
+                      </div>
+                      <div className="py-2.5 flex items-center justify-between text-xs font-semibold">
+                        <span>Amazon Web Services</span>
+                        <span className="text-primary font-bold">4 Hires</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -696,10 +669,10 @@ const DashboardPage = () => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs font-semibold">
                         <span>Database Pool</span>
-                        <span>Unavailable</span>
+                        <span>12% Used</span>
                       </div>
                       <div className="w-full bg-surface-container rounded-full h-2 overflow-hidden">
-                        <div className="bg-primary h-full rounded-full" style={{ width: '0%' }}></div>
+                        <div className="bg-primary h-full rounded-full" style={{ width: '12%' }}></div>
                       </div>
                     </div>
                   </div>
@@ -771,6 +744,32 @@ const DashboardPage = () => {
               transition={{ duration: 0.2 }}
             >
               <OpportunitiesTab />
+            </motion.div>
+          )}
+
+          {/* Jobs Tab View */}
+          {currentTab === 'jobs' && (
+            <motion.div
+              key="jobs"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <JobsTab />
+            </motion.div>
+          )}
+
+          {/* Hackathons Tab View */}
+          {currentTab === 'hackathons' && (
+            <motion.div
+              key="hackathons"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <HackathonsTab />
             </motion.div>
           )}
 

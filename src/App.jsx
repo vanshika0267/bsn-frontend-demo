@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { MotionConfig } from 'framer-motion';
-import { AppProvider, useApp } from './context/AppContext';
+import { AppProvider } from './context/AppContext';
 import { RoleProvider } from './context/RoleContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ChatbotWidget from './components/ChatbotWidget';
@@ -15,11 +14,9 @@ import SyllabusEditPage from './pages/Syllabus/SyllabusEditPage';
 import SettingsPage from './pages/Settings/SettingsPage';
 import NotificationsPage from './pages/Notifications/NotificationsPage';
 
-function AppContent() {
-  const { settings } = useApp();
-
+function App() {
   return (
-    <MotionConfig reducedMotion={settings?.reduceMotion ? "always" : "user"}>
+    <AppProvider>
       <RoleProvider>
         <Router>
           <Routes>
@@ -47,14 +44,6 @@ function AppContent() {
           <ChatbotWidget />
         </Router>
       </RoleProvider>
-    </MotionConfig>
-  );
-}
-
-function App() {
-  return (
-    <AppProvider>
-      <AppContent />
     </AppProvider>
   );
 }

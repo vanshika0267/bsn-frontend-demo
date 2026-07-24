@@ -1,6 +1,7 @@
-import { 
-  FiGrid, FiUser, FiBookOpen, FiAward, FiBriefcase, 
-  FiCompass, FiUsers, FiBell, FiSettings, FiStar, FiMessageSquare, FiCalendar
+import {
+  FiGrid, FiUser, FiBookOpen, FiAward, FiBriefcase,
+  FiCompass, FiUsers, FiBell, FiSettings, FiStar, FiMessageSquare, FiCalendar,
+  FiTrophy, FiLayers
 } from 'react-icons/fi';
 
 export const studentSeniorConfig = {
@@ -10,7 +11,9 @@ export const studentSeniorConfig = {
     { name: 'Profile', path: '/profile', icon: FiUser },
     { name: 'Resources', path: '/dashboard?tab=resources', icon: FiBookOpen, tab: 'resources' },
     { name: 'Leaderboard', path: '/dashboard?tab=leaderboard', icon: FiAward, tab: 'leaderboard' },
-    { name: 'Opportunities', path: '/dashboard?tab=opportunities', icon: FiBriefcase, tab: 'opportunities' },
+    { name: 'Jobs', path: '/dashboard?tab=jobs', icon: FiBriefcase, tab: 'jobs' },
+    { name: 'Hackathons', path: '/dashboard?tab=hackathons', icon: FiTrophy, tab: 'hackathons' },
+    { name: 'Opportunities', path: '/dashboard?tab=opportunities', icon: FiLayers, tab: 'opportunities' },
     { name: 'Learning Hub', path: '/dashboard?tab=learning-hub', icon: FiCompass, tab: 'learning-hub' },
     { name: 'Team Finder', path: '/dashboard?tab=team-finder', icon: FiUsers, tab: 'team-finder' },
     { name: 'Skill Gap Finder', path: '/dashboard?tab=skill-gap', icon: FiCompass, tab: 'skill-gap' },
@@ -47,7 +50,7 @@ export const studentSeniorConfig = {
     { id: 'appearance', name: 'Appearance Preferences' }
   ],
   allowedTabs: [
-    'overview', 'resources', 'upload', 'leaderboard', 'opportunities', 'learning-hub', 
+    'overview', 'resources', 'upload', 'leaderboard', 'jobs', 'hackathons', 'opportunities', 'learning-hub',
     'team-finder', 'skill-gap', 'seniors', 'reviews', 'chat', 'mentorship-requests', 'questions'
   ],
   recommendations: [

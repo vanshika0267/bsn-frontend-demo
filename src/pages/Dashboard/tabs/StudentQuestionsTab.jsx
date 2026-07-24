@@ -5,7 +5,7 @@ import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
 import Badge from '../../../components/common/Badge';
 import EmptyState from '../../../components/common/EmptyState';
-import { listSeniorQuestions, answerQuestion } from '../../../services/api';
+import { listSeniorQuestions, answerQuestion, resolveQuestion } from '../../../services/api';
 import {
   FiMessageSquare,
   FiClock,
@@ -13,6 +13,24 @@ import {
   FiLoader,
   FiCheckCircle,
 } from 'react-icons/fi';
+
+const RESOLVED_KEY = 'bsn_resolved_questions';
+const ANSWERED_KEY = 'bsn_answered_questions';
+
+const loadPersistedIds = (key) => {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
+const savePersistedIds = (key, ids) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(ids));
+  } catch { /* ignore */ }
+};
 
 const StudentQuestionsTab = () => {
   const { user } = useApp();
@@ -24,7 +42,11 @@ const StudentQuestionsTab = () => {
   const [answerText, setAnswerText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [answeredIds, setAnsweredIds] = useState([]);
+
+  // Persisted IDs — loaded from localStorage so they survive refresh
+  const [answeredIds, setAnsweredIds] = useState(() => loadPersistedIds(ANSWERED_KEY));
+  const [resolvedIds, setResolvedIds] = useState(() => loadPersistedIds(RESOLVED_KEY));
+  const [resolvingId, setResolvingId] = useState(null);
 
   const loadQuestions = useCallback(async () => {
     setLoading(true);
@@ -43,6 +65,33 @@ const StudentQuestionsTab = () => {
     loadQuestions();
   }, [loadQuestions]);
 
+  // Sync persisted IDs to localStorage whenever they change
+  useEffect(() => { savePersistedIds(ANSWERED_KEY, answeredIds); }, [answeredIds]);
+  useEffect(() => { savePersistedIds(RESOLVED_KEY, resolvedIds); }, [resolvedIds]);
+
+  // Also check backend-resolved status from the question object (if backend supports it)
+  useEffect(() => {
+    if (!questions.length) return;
+    let changed = false;
+    const newAnswered = [...answeredIds];
+    const newResolved = [...resolvedIds];
+    questions.forEach((q) => {
+      // Backend returns resolved/answered status on the question object
+      if (q.status === 'resolved' && !newResolved.includes(q.id)) {
+        newResolved.push(q.id);
+        changed = true;
+      }
+      if (q.status === 'answered' && !newAnswered.includes(q.id)) {
+        newAnswered.push(q.id);
+        changed = true;
+      }
+    });
+    if (changed) {
+      setAnsweredIds(newAnswered);
+      setResolvedIds(newResolved);
+    }
+  }, [questions]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const openAnswerModal = (q) => {
     setSelectedQuestion(q);
     setAnswerText('');
@@ -56,13 +105,32 @@ const StudentQuestionsTab = () => {
     setSubmitError('');
     try {
       await answerQuestion(selectedQuestion.id, user.id, answerText.trim());
-      setAnsweredIds((prev) => [...prev, selectedQuestion.id]);
+      setAnsweredIds((prev) => {
+        const next = [...prev, selectedQuestion.id];
+        return next;
+      });
       setSelectedQuestion(null);
       setAnswerText('');
     } catch (err) {
       setSubmitError(err.message || 'Failed to post answer.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResolve = async (qId) => {
+    setResolvingId(qId);
+    setError('');
+    try {
+      await resolveQuestion(qId);
+      setResolvedIds((prev) => {
+        const next = [...prev, qId];
+        return next;
+      });
+    } catch (err) {
+      setError(err.message || 'Failed to resolve doubt.');
+    } finally {
+      setResolvingId(null);
     }
   };
 
@@ -102,6 +170,7 @@ const StudentQuestionsTab = () => {
         <div className="space-y-4">
           {questions.map((q) => {
             const answered = answeredIds.includes(q.id);
+            const resolved = resolvedIds.includes(q.id);
             return (
               <Card key={q.id} hoverable className="flex flex-col gap-4">
                 <div className="flex items-start justify-between gap-4">
@@ -118,8 +187,13 @@ const StudentQuestionsTab = () => {
                       )}
                     </div>
                   </div>
-                  {answered && (
+                  {resolved && (
                     <Badge variant="success">
+                      <FiCheckCircle size={11} className="mr-1" /> Resolved
+                    </Badge>
+                  )}
+                  {!resolved && answered && (
+                    <Badge variant="primary">
                       <FiCheckCircle size={11} className="mr-1" /> Answered
                     </Badge>
                   )}
@@ -127,7 +201,7 @@ const StudentQuestionsTab = () => {
 
                 <p className="text-xs font-semibold text-on-surface leading-relaxed pr-6">{q.question}</p>
 
-                <div className="border-t border-outline-variant pt-3 flex items-center justify-end">
+                <div className="border-t border-outline-variant pt-3 flex items-center justify-end gap-2">
                   <Button
                     variant="primary"
                     size="sm"
@@ -136,6 +210,18 @@ const StudentQuestionsTab = () => {
                   >
                     {answered ? 'Add another answer' : 'Answer'}
                   </Button>
+                  {!resolved && (
+                    <Button
+                      variant="success"
+                      size="sm"
+                      disabled={resolvingId === q.id}
+                      onClick={() => handleResolve(q.id)}
+                      className="cursor-pointer flex items-center gap-1.5"
+                    >
+                      <FiCheckCircle size={13} />
+                      <span>{resolvingId === q.id ? 'Resolving...' : 'Resolve Doubt'}</span>
+                    </Button>
+                  )}
                 </div>
               </Card>
             );

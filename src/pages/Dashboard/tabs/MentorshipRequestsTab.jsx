@@ -75,6 +75,14 @@ const MentorshipRequestsTab = () => {
 
   const openChat = (studentId) => navigate(`/dashboard?tab=chat&to=${studentId}`);
 
+  // Split requests into pending and approved
+  const pendingRequests = requests.filter((req) => String(req.status || '').toLowerCase() === 'pending');
+  const approvedRequests = requests.filter((req) => String(req.status || '').toLowerCase() === 'approved');
+  const rejectedRequests = requests.filter((req) => {
+    const s = String(req.status || '').toLowerCase();
+    return s !== 'pending' && s !== 'approved';
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -105,46 +113,49 @@ const MentorshipRequestsTab = () => {
           onActionClick={loadInbox}
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-8">
           <div className="flex justify-end">
             <Button variant="outline" size="sm" onClick={loadInbox} className="cursor-pointer">Refresh</Button>
           </div>
-          {requests.map((req) => {
-            const status = String(req.status || '').toLowerCase();
-            const isPending = status === 'pending';
-            const isApproved = status === 'approved';
-            const busy = actingId === req.request_id;
-            return (
-              <Card key={req.request_id} className="bg-white border border-outline-variant shadow-sm text-left p-4">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm select-none flex-shrink-0">
-                      {String(req.student_name || '?').charAt(0).toUpperCase()}
-                    </div>
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-on-surface">{req.student_name || 'Student'}</span>
-                        <Badge variant={statusVariant(req.status)}>{req.status}</Badge>
-                      </div>
-                      {req.student_email && (
-                        <p className="text-[10px] text-on-surface-variant font-medium flex items-center gap-1.5">
-                          <FiMail size={11} /> {req.student_email}
-                        </p>
-                      )}
-                      {req.message && (
-                        <p className="text-xs text-on-surface-variant font-light leading-relaxed pt-1">"{req.message}"</p>
-                      )}
-                      {req.created_at && (
-                        <p className="text-[9px] text-on-surface-variant/70 font-semibold flex items-center gap-1 pt-0.5">
-                          <FiClock size={10} /> {new Date(req.created_at).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {isPending && (
-                      <>
+          {/* Pending Requests Section */}
+          {pendingRequests.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-extrabold text-on-surface font-poppins">Pending Requests</h3>
+                <Badge variant="warning">{pendingRequests.length}</Badge>
+              </div>
+              {pendingRequests.map((req) => {
+                const busy = actingId === req.request_id;
+                return (
+                  <Card key={req.request_id} className="bg-white border border-outline-variant shadow-sm text-left p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm select-none flex-shrink-0">
+                          {String(req.student_name || '?').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-on-surface">{req.student_name || 'Student'}</span>
+                            <Badge variant={statusVariant(req.status)}>{req.status}</Badge>
+                          </div>
+                          {req.student_email && (
+                            <p className="text-[10px] text-on-surface-variant font-medium flex items-center gap-1.5">
+                              <FiMail size={11} /> {req.student_email}
+                            </p>
+                          )}
+                          {req.message && (
+                            <p className="text-xs text-on-surface-variant font-light leading-relaxed pt-1">"{req.message}"</p>
+                          )}
+                          {req.created_at && (
+                            <p className="text-[9px] text-on-surface-variant/70 font-semibold flex items-center gap-1 pt-0.5">
+                              <FiClock size={10} /> {new Date(req.created_at).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <Button
                           variant="success"
                           size="sm"
@@ -165,9 +176,50 @@ const MentorshipRequestsTab = () => {
                           <FiX size={14} />
                           <span>Reject</span>
                         </Button>
-                      </>
-                    )}
-                    {isApproved && (
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Approved Requests Section */}
+          {approvedRequests.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-extrabold text-on-surface font-poppins">Approved</h3>
+                <Badge variant="success">{approvedRequests.length}</Badge>
+              </div>
+              {approvedRequests.map((req) => (
+                <Card key={req.request_id} className="bg-white border border-outline-variant shadow-sm text-left p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center font-bold text-sm select-none flex-shrink-0">
+                        {String(req.student_name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-on-surface">{req.student_name || 'Student'}</span>
+                          <Badge variant="success">Approved</Badge>
+                        </div>
+                        {req.student_email && (
+                          <p className="text-[10px] text-on-surface-variant font-medium flex items-center gap-1.5">
+                            <FiMail size={11} /> {req.student_email}
+                          </p>
+                        )}
+                        {req.message && (
+                          <p className="text-xs text-on-surface-variant font-light leading-relaxed pt-1">"{req.message}"</p>
+                        )}
+                        {req.created_at && (
+                          <p className="text-[9px] text-on-surface-variant/70 font-semibold flex items-center gap-1 pt-0.5">
+                            <FiClock size={10} /> {new Date(req.created_at).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <Button
                         variant="primary"
                         size="sm"
@@ -177,15 +229,61 @@ const MentorshipRequestsTab = () => {
                         <FiMessageSquare size={13} />
                         <span>Message</span>
                       </Button>
-                    )}
-                    {!isPending && !isApproved && (
-                      <span className="text-[10px] text-on-surface-variant font-semibold uppercase">{req.status}</span>
-                    )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            );
-          })}
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Rejected / Other Requests Section */}
+          {rejectedRequests.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-extrabold text-on-surface font-poppins">Other</h3>
+                <Badge variant="error">{rejectedRequests.length}</Badge>
+              </div>
+              {rejectedRequests.map((req) => (
+                <Card key={req.request_id} className="bg-white border border-outline-variant shadow-sm text-left p-4 opacity-60">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center font-bold text-sm select-none flex-shrink-0">
+                        {String(req.student_name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-on-surface">{req.student_name || 'Student'}</span>
+                          <Badge variant={statusVariant(req.status)}>{req.status}</Badge>
+                        </div>
+                        {req.student_email && (
+                          <p className="text-[10px] text-on-surface-variant font-medium flex items-center gap-1.5">
+                            <FiMail size={11} /> {req.student_email}
+                          </p>
+                        )}
+                        {req.created_at && (
+                          <p className="text-[9px] text-on-surface-variant/70 font-semibold flex items-center gap-1 pt-0.5">
+                            <FiClock size={10} /> {new Date(req.created_at).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-on-surface-variant font-semibold uppercase flex-shrink-0">{req.status}</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* All sections empty guard (shouldn't happen since requests.length > 0) */}
+          {pendingRequests.length === 0 && approvedRequests.length === 0 && rejectedRequests.length === 0 && (
+            <EmptyState
+              icon={FiUserCheck}
+              title="No connection requests"
+              description="When students request to connect with you, their requests will appear here."
+              actionText="Refresh"
+              onActionClick={loadInbox}
+            />
+          )}
         </div>
       )}
     </div>
