@@ -47,14 +47,16 @@ export async function apiGet(path) {
   return handle(res);
 }
 
-export async function apiRegister({ name, email, password, college }) {
+export async function apiRegister({ name, email, password, college, is_alumni, graduation_year }) {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, college }),
+    body: JSON.stringify({ name, email, password, college, is_alumni, graduation_year }),
   });
   return handle(res);
 }
+
+export const becomeAlumnus = () => req("POST", "/users/me/become-alumni");
 
 export async function apiLogin(email, password) {
   const body = new URLSearchParams();
@@ -168,6 +170,8 @@ export const resolveQuestion = (qid) => req("POST", `/seniors/questions/${qid}/r
 
 // Skill gap + teams
 export const skillGap = (userId, targetRole) => req("POST", "/skill-gap", { user_id: userId, target_role: targetRole });
+export const listTeams = () => req("GET", "/teams");
+export const myTeams = () => req("GET", "/teams/mine");
 export const createTeam = (teamName, requiredSkills) => req("POST", "/teams", { team_name: teamName, required_skills: requiredSkills });
 export const joinTeam = (teamId) => req("POST", `/teams/${teamId}/join`);
 export const getTeamMembers = (teamId) => req("GET", `/teams/${teamId}/members`);
