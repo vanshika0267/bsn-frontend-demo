@@ -10,6 +10,7 @@ import {
   FiSettings,
   FiStar,
   FiMessageSquare,
+  FiCalendar,
   FiLayers
 } from 'react-icons/fi';
 export const studentSeniorConfig = {
