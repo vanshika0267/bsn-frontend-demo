@@ -5,9 +5,12 @@ import {
   FiCompass, FiUsers, FiBell, FiSettings, FiX 
 } from 'react-icons/fi';
 import { useRole } from '../../context/RoleContext';
+import { useApp } from '../../context/AppContext';
+import Avatar from '../common/Avatar';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { sidebarItems } = useRole();
+  const { user } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -20,6 +23,11 @@ const Sidebar = ({ isOpen, onClose }) => {
   const handleNavClick = (item) => {
     if (onClose) onClose();
     navigate(item.path);
+  };
+
+  const handleProfileClick = () => {
+    if (onClose) onClose();
+    navigate('/profile');
   };
 
   return (
@@ -36,6 +44,21 @@ const Sidebar = ({ isOpen, onClose }) => {
           className="absolute top-5 right-5 p-1 text-on-surface-variant hover:text-on-surface lg:hidden"
         >
           <FiX size={20} />
+        </button>
+
+        {/* User Avatar / Mini Profile */}
+        <button
+          onClick={handleProfileClick}
+          className="flex items-center gap-3 px-4 py-3 mx-2 mb-2 rounded-lg hover:bg-surface-container transition-colors text-left"
+          title="Go to Profile"
+        >
+          <div className="w-9 h-9 rounded-lg overflow-hidden ring-2 ring-primary/20 shrink-0">
+            <Avatar src={user.profilePicture} alt={user.name} className="w-full h-full" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-on-surface leading-tight truncate">{user.name}</p>
+            <p className="text-[10px] text-on-surface-variant truncate">{user.role || 'Student'}</p>
+          </div>
         </button>
 
         {/* Navigation Links */}
