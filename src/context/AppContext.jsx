@@ -25,7 +25,7 @@ const roleLabel = (backendRole) => ROLE_LABELS[String(backendRole || '').toLower
 const labelForUser = (me) =>
   (me && me.is_alumni && me.alumni_verified) ? 'Senior/Alumni' : roleLabel(me && me.role);
 
-export const AppProvider = ({ children }) => {
+export function AppProvider({ children }) {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('bsn_user');
     return saved ? JSON.parse(saved) : initialUser;
@@ -274,7 +274,8 @@ export const AppProvider = ({ children }) => {
   );
 };
 
-export const useApp = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export function useApp() {
   const context = useContext(AppContext);
   if (!context) {
     throw new Error('useApp must be used within an AppProvider');
