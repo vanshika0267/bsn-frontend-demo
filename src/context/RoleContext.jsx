@@ -11,7 +11,7 @@ import { recruiterAlumniConfig } from '../data/roleConfig/recruiterAlumni';
 
 const RoleContext = createContext();
 
-export const RoleProvider = ({ children }) => {
+export function RoleProvider({ children }) {
   const { userRole } = useApp();
 
   const getRoleConfig = () => {
@@ -59,7 +59,8 @@ export const RoleProvider = ({ children }) => {
   );
 };
 
-export const useRole = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export function useRole() {
   const context = useContext(RoleContext);
   if (!context) {
     throw new Error('useRole must be used within a RoleProvider');

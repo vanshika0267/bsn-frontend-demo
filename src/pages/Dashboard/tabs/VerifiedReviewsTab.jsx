@@ -3,6 +3,7 @@ import { useApp } from '../../../context/AppContext';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
 import Badge from '../../../components/common/Badge';
+import EmptyState from '../../../components/common/EmptyState';
 import InputField from '../../../components/common/InputField';
 import { FiStar, FiEdit3, FiCheckCircle, FiLock, FiBookOpen, FiBriefcase } from 'react-icons/fi';
 
