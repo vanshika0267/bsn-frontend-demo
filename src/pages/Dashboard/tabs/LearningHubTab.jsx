@@ -29,14 +29,6 @@ const LearningHubTab = () => {
     return Math.round((completedCount / modules.length) * 100);
   };
 
-  const handleOpenCourse = (course) => {
-    navigate(`/syllabus/edit?courseId=${course.id}`);
-  };
-
-  const totalProgress = Math.round(
-    courses.reduce((acc, course) => acc + calculateProgress(course.modules), 0) / courses.length
-  );
-
   return (
     <div className="space-y-6 text-left">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

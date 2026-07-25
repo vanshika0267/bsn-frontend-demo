@@ -8,6 +8,7 @@ import {
   FiMessageSquare, FiBriefcase
 } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
+import { useRole } from '../../context/RoleContext';
 import { 
   leaderboard as initialLeaderboard, 
   learningResources as initialLearningResources, 
@@ -40,6 +41,8 @@ import UploadResource from './tabs/UploadResource';
 import LeaderboardTab from './tabs/LeaderboardTab';
 import OpportunitiesTab from './tabs/OpportunitiesTab';
 import LearningHubTab from './tabs/LearningHubTab';
+import TeamFinderTab from './tabs/TeamFinderTab';
+import SkillGapFinderTab from './tabs/SkillGapFinderTab';
 import SeniorsMentorshipTab from './tabs/SeniorsMentorshipTab';
 import AdminDashboardTab from './tabs/AdminDashboardTab';
 import ChatTab from './tabs/ChatTab';
@@ -67,6 +70,13 @@ const DashboardPage = () => {
   const { isAllowedTab, dashboardWidgets } = useRole();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Restored: overview/list state (declarations dropped in a merge)
+  const [recOverview, setRecOverview] = useState({ postings: [], totalApplicants: 0, underReview: 0, accepted: 0, recent: [] });
+  const [adminOverview, setAdminOverview] = useState(null);
+  const [studentOverview, setStudentOverview] = useState({ score: 0, rank: null, resourceCount: 0, opps: [] });
+  const [resources, setResources] = useState(initialLearningResources);
+  const [activities, setActivities] = useState(initialActivity);
 
   // Tab State syncing with query param
   const queryParams = new URLSearchParams(location.search);
