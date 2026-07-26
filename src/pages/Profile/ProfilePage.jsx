@@ -683,7 +683,12 @@ const ProfilePage = () => {
 
             {/* Verified Skills with progress rating */}
             <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm">
-              <h3 className="text-sm font-bold text-on-surface mb-3.5 font-poppins">Verified Skill Index</h3>
+              <div className="flex items-center justify-between mb-3.5">
+                <h3 className="text-sm font-bold text-on-surface font-poppins">Verified Skill Index</h3>
+                <button type="button" onClick={openSkillsModal} className="text-primary hover:text-primary/80 p-1" title="Edit skills">
+                  <FiEdit size={14} />
+                </button>
+              </div>
               <div className="space-y-3.5">
                 {(user.skills && user.skills.length > 0) ? (
                   user.skills.map((skill, idx) => (
@@ -712,7 +717,12 @@ const ProfilePage = () => {
 
             {/* Academic Interests */}
             <div className="bg-white p-5 rounded-xl border border-outline-variant shadow-sm">
-              <h3 className="text-sm font-bold text-on-surface mb-3 font-poppins">Academic Interests</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-on-surface font-poppins">Academic Interests</h3>
+                <button type="button" onClick={openInterestsModal} className="text-primary hover:text-primary/80 p-1" title="Edit interests">
+                  <FiEdit size={14} />
+                </button>
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {(user.interests && user.interests.length > 0) ? (
                   user.interests.map((interest, idx) => (

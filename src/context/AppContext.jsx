@@ -6,7 +6,7 @@ import {
   learningResources as initialResources,
   teamFinderPosts as initialTeams
 } from '../data/mockData';
-import { apiLogin, apiRegister, apiGetMe, setToken, getToken, becomeAlumnus as apiBecomeAlumnus } from '../services/api';
+import { apiLogin, apiRegister, apiGetMe, setToken, getToken, becomeAlumnus as apiBecomeAlumnus, updateProfile as apiUpdateProfile } from '../services/api';
 import { getSavedGitHubUsername, saveGitHubUsername as storageSaveGitHubUsername } from '../utils/github';
 import { detectRoleFromEmail } from '../utils/roleDetection';
 
@@ -239,6 +239,10 @@ export function AppProvider({ children }) {
     setUser(prev => {
       const updated = { ...prev, ...updatedFields };
       localStorage.setItem('bsn_user', JSON.stringify(updated));
+      // Persist profile fields to the backend so they survive re-login / other devices.
+      if (updated.id && getToken()) {
+        apiUpdateProfile(updated.id, { data: updatedFields }).catch(() => {});
+      }
       return updated;
     });
   const updateSettings = (key, value) =>

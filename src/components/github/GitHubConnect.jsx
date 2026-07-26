@@ -5,7 +5,7 @@ import GitHubRepoList from './GitHubRepoList';
 import { useApp } from '../../context/AppContext';
 
 export default function GitHubConnect() {
-  const { setGithubUsername } = useApp();
+  const { user, setGithubUsername, updateProfile } = useApp();
   const [input, setInput] = useState('');
   const [username, setUsername] = useState(null);
   const [ghUser, setGhUser] = useState(null);
@@ -15,9 +15,8 @@ export default function GitHubConnect() {
   const [syncMeta, setSyncMeta] = useState(() => getSyncMeta());
 
   useEffect(() => {
-    const saved = getSavedGitHubUsername();
-    if (saved && !username) {
-      setInput(saved); // prefill only — user must click Connect (no auto-connect)
+    if (user?.githubUsername && !username) {
+      setInput(user.githubUsername); // prefill this user's saved handle (no auto-connect)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -41,6 +40,7 @@ export default function GitHubConnect() {
       setUsername(parsed);
       saveGitHubUsername(parsed);
       setGithubUsername(parsed);
+      updateProfile({ githubUsername: parsed });
       const meta = {
         lastSyncedAt: new Date().toISOString(),
         repoCount: repoList.length,
