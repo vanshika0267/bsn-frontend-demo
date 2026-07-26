@@ -283,9 +283,6 @@ const DashboardPage = () => {
                       title="Resources Shared" 
                       value={`${studentOverview.resourceCount} Shared`} 
                       subtitle="Your uploads" 
-                      title="Resource Statistics" 
-                      value="2 Shared" 
-                      subtitle="1,194 Total Downloads" 
                       icon={FiBookOpen} 
                       color="green"
                     />
@@ -297,22 +294,22 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard 
                       title="Consulted Hours" 
-                      value="12 Hours" 
-                      subtitle="2 sessions booked" 
+                      value="0 Hours" 
+                      subtitle="No sessions booked yet" 
                       icon={FiClock} 
                       color="blue"
                     />
                     <StatCard 
                       title="Doubts Answered" 
-                      value="28 Solved" 
-                      subtitle="Top 5% contributor" 
+                      value="0 Solved" 
+                      subtitle="No doubts answered yet" 
                       icon={FiMessageSquare} 
                       color="purple"
                     />
                     <StatCard 
                       title="Resource Uploads" 
-                      value="4 Guides" 
-                      subtitle="1,200 total downloads" 
+                      value="0 Guides" 
+                      subtitle="No downloads yet" 
                       icon={FiBookOpen} 
                       color="green"
                     />
@@ -351,22 +348,22 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <StatCard 
                       title="Verified Students" 
-                      value="1,842" 
-                      subtitle="94% verification rate" 
+                      value="0" 
+                      subtitle="No data yet" 
                       icon={FiUsers} 
                       color="blue"
                     />
                     <StatCard 
                       title="Pending Badges" 
-                      value="2 Requests" 
-                      subtitle="Awaiting credential sign" 
+                      value="0 Requests" 
+                      subtitle="None pending" 
                       icon={FiCheckSquare} 
                       color="purple"
                     />
                     <StatCard 
                       title="Placement Rate" 
-                      value="84.2%" 
-                      subtitle="Top recruiting term" 
+                      value="N/A" 
+                      subtitle="No data yet" 
                       icon={FiTrendingUp} 
                       color="green"
                     />
@@ -385,21 +382,15 @@ const DashboardPage = () => {
                     />
                     <StatCard 
                       title="Total Opportunities" 
-                      value={adminOverview ? adminOverview.total_opportunities : '…'} 
+                      value={adminOverview ? adminOverview.total_opportunities : 0} 
                       subtitle="Across the platform" 
-                      title="Accredited Colleges" 
-                      value="3 Active" 
-                      subtitle="Domain verified" 
                       icon={FiGrid} 
                       color="purple"
                     />
                     <StatCard 
                       title="Resources Pending" 
-                      value={adminOverview ? adminOverview.resources_pending_review : '…'} 
+                      value={adminOverview ? adminOverview.resources_pending_review : 0} 
                       subtitle="Awaiting review" 
-                      title="Pending Moderation" 
-                      value="6 Listings" 
-                      subtitle="Jobs & posts vetting" 
                       icon={FiShield} 
                       color="green"
                     />
@@ -432,7 +423,7 @@ const DashboardPage = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between text-xs font-semibold">
                         <span>Vetted Candidates &rarr; Interviewed</span>
-                        <span className="text-primary font-bold">33% Conversion</span>
+                        <span className="text-primary font-bold">0% Conversion</span>
                       </div>
                       <div className="w-full bg-surface-container rounded-full h-2 overflow-hidden">
                         <div className="bg-primary h-full rounded-full" style={{ width: '33%' }}></div>
@@ -645,14 +636,7 @@ const DashboardPage = () => {
                       <FiBookOpen className="text-primary" size={16} /> Guidance Guides Uploaded
                     </h3>
                     <div className="space-y-3">
-                      <div className="p-3 bg-surface rounded-lg border border-outline-variant">
-                        <h4 className="text-xs font-bold text-on-surface">Vetted Mock Interview Guide</h4>
-                        <p className="text-[10px] text-on-surface-variant mt-0.5 font-semibold">84 downloads today</p>
-                      </div>
-                      <div className="p-3 bg-surface rounded-lg border border-outline-variant">
-                        <h4 className="text-xs font-bold text-on-surface">System Architecture Cheat Sheet</h4>
-                        <p className="text-[10px] text-on-surface-variant mt-0.5 font-semibold">142 downloads today</p>
-                      </div>
+                      <p className="text-xs text-on-surface-variant font-medium py-4">No guidance guides uploaded yet.</p>
                     </div>
                   </div>
                 )}
@@ -702,7 +686,7 @@ const DashboardPage = () => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs font-semibold">
                         <span>Database Pool</span>
-                        <span>12% Used</span>
+                        <span>0% Used</span>
                       </div>
                       <div className="w-full bg-surface-container rounded-full h-2 overflow-hidden">
                         <div className="bg-primary h-full rounded-full" style={{ width: '12%' }}></div>
