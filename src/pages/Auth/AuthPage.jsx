@@ -356,15 +356,6 @@ export default function AuthPage({ initialMode }) {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    setLoading(true);
-    // Autofill with the mock student persona
-    login('alex.rivera@university.edu', 'secret123')
-      .then(() => navigate('/dashboard', { replace: true }))
-      .catch(() => setError('OAuth simulation failed'))
-      .finally(() => setLoading(false));
-  };
-
   const getEyeIcon = (isVisible, toggleFunc) => (
     <button
       type="button"
@@ -462,7 +453,7 @@ export default function AuthPage({ initialMode }) {
         </header>
 
         {/* Hero Content */}
-        <main className="relative z-10 my-auto py-10 lg:py-16 max-w-[540px]">
+        <main className="relative z-10 my-auto py-4 lg:py-8 max-w-[540px]">
           <h1 className="font-poppins text-[36px] sm:text-[46px] xl:text-[52px] leading-[1.08] font-bold tracking-tight text-slate-900 dark:text-white">
             One campus identity.<br />
             <span className="bg-gradient-to-r from-[#10B981] to-[#34D399] bg-clip-text text-transparent block mt-2">
@@ -656,7 +647,7 @@ export default function AuthPage({ initialMode }) {
 
           {/* ════════════════════ REGISTER — STEP 2 (Dynamic) ════════════════════ */}
           {mode === 'register' && registerStep === 2 && (
-            <form onSubmit={handleRegisterSubmit} className="space-y-4 max-h-[62vh] lg:max-h-[520px] overflow-y-auto pr-1">
+            <form onSubmit={handleRegisterSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
               {/* Subtle role indicator */}
               {detectedRoleForRegister && ROLE_META[detectedRoleForRegister] && (
                 <div className="flex items-center gap-2 mb-2">
@@ -967,32 +958,6 @@ export default function AuthPage({ initialMode }) {
                 </button>
               </div>
             </form>
-          )}
-
-          {/* Social login separator & Google OAuth */}
-          {mode === 'login' && (
-            <>
-              <div className="relative flex items-center justify-center my-5">
-                <div className="absolute inset-x-0 h-[1px] bg-slate-200/55 dark:bg-slate-800/60"></div>
-                <span className="relative px-3 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 bg-[#fdfdfe] dark:bg-[#080d19] tracking-wider transition-colors duration-300">
-                  Or connect with
-                </span>
-              </div>
-
-              <button
-                onClick={handleGoogleSignIn}
-                type="button"
-                className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:bg-slate-100/60 dark:hover:bg-slate-900/65 px-4 py-3.5 text-sm font-bold text-slate-800 dark:text-white transition-all cursor-pointer shadow-sm hover:shadow-[0_4px_15px_rgba(0,0,0,0.02)]"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path
-                    fill="#EA4335"
-                    d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.484 0-6.29-2.905-6.29-6.514 0-3.61 2.806-6.515 6.29-6.515 1.5 0 2.87.525 3.96 1.485l3.15-3.15C18.17 1.05 15.345 0 12.24 0 5.865 0 .685 5.25.685 12c0 6.75 5.18 12 11.555 12 6.51 0 11.235-4.47 11.235-11.22 0-.705-.075-1.395-.195-2.07H12.24z"
-                  />
-                </svg>
-                Google OAuth
-              </button>
-            </>
           )}
 
           <div className="text-center text-[12px] text-slate-500 dark:text-slate-450 mt-6 font-medium">

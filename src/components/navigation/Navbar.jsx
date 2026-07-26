@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiBell, FiSearch, FiLogOut, FiUser, FiSettings, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,7 @@ const Navbar = ({ onMenuClick, isSidebarOpen }) => {
   const { user, userRole, logout, notifications, searchQuery, setSearchQuery, settings, updateSettings } = useApp();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -117,6 +118,7 @@ const Navbar = ({ onMenuClick, isSidebarOpen }) => {
                   </div>
                   
                   <div className="p-1">
+{location.pathname !== '/profile' && (
                     <Link 
                       to="/profile" 
                       onClick={() => setShowProfileMenu(false)}
@@ -125,6 +127,7 @@ const Navbar = ({ onMenuClick, isSidebarOpen }) => {
                       <FiUser size={16} className="text-primary" />
                       My Profile
                     </Link>
+                    )}
                     <Link 
                       to="/settings" 
                       onClick={() => setShowProfileMenu(false)}

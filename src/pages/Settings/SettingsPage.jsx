@@ -29,6 +29,7 @@ const SettingsPage = () => {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [college, setCollege] = useState(user.college);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -136,6 +137,7 @@ const SettingsPage = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    disabled={!isEditingProfile}
                     id="sett-name"
                   />
                   
@@ -145,6 +147,7 @@ const SettingsPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={!isEditingProfile}
                     id="sett-email"
                   />
 
@@ -153,13 +156,27 @@ const SettingsPage = () => {
                     value={college}
                     onChange={(e) => setCollege(e.target.value)}
                     required
+                    disabled={!isEditingProfile}
                     id="sett-college"
                   />
 
-                  <div className="pt-2">
-                    <Button type="submit" variant="primary" size="sm">
-                      Save Profile Settings
-                    </Button>
+                  <div className="pt-2 flex gap-2">
+                    {!isEditingProfile ? (
+                      <Button type="button" variant="primary" size="sm" onClick={() => setIsEditingProfile(true)}>
+                        Edit
+                      </Button>
+                    ) : (
+                      <>
+                        <Button type="submit" variant="primary" size="sm" onClick={() => setIsEditingProfile(false)}>
+                          Save Profile Settings
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={() => {
+                          setName(user.name); setEmail(user.email); setCollege(user.college); setIsEditingProfile(false);
+                        }}>
+                          Cancel
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </motion.form>
               )}
@@ -340,8 +357,11 @@ const SettingsPage = () => {
                         <p className="text-[11px] text-on-surface-variant leading-relaxed">Turn off sliding dashboard layouts or dropdown effects.</p>
                       </div>
                       <Checkbox
-                        checked={false}
-                        onChange={() => triggerSuccess()}
+                        checked={settings.reduceMotion || false}
+                        onChange={(e) => {
+                          updateSettings('reduceMotion', e.target.checked);
+                          triggerSuccess();
+                        }}
                         id="sett-theme-motion"
                       />
                     </div>
