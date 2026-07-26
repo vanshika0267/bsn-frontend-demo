@@ -75,8 +75,8 @@ const DashboardPage = () => {
   const [recOverview, setRecOverview] = useState({ postings: [], totalApplicants: 0, underReview: 0, accepted: 0, recent: [] });
   const [adminOverview, setAdminOverview] = useState(null);
   const [studentOverview, setStudentOverview] = useState({ score: 0, rank: null, resourceCount: 0, opps: [] });
-  const [resources, setResources] = useState(initialLearningResources);
-  const [activities, setActivities] = useState(initialActivity);
+  const [resources, setResources] = useState([]);
+  const [activities, setActivities] = useState([]);
 
   // Tab State syncing with query param
   const queryParams = new URLSearchParams(location.search);

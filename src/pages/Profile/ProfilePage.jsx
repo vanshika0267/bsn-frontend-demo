@@ -322,9 +322,9 @@ const ProfilePage = () => {
   // Portfolio copy
   const [copied, setCopied] = useState(false);
   const getPortfolioUrl = () => {
-    if (user.portfolioUrl) return user.portfolioUrl;
+    // Always build a unique per-user link (never the shared/demo profile).
     const identifier = user.username || user.id || (user.email ? user.email.split('@')[0] : null);
-    if (!identifier) return window.location.origin + '/portfolio';
+    if (!identifier) return `${window.location.origin}/portfolio`;
     return `${window.location.origin}/portfolio/${identifier}`;
   };
   const handleCopyLink = () => {
@@ -586,10 +586,6 @@ const ProfilePage = () => {
 
             {/* Actions button group */}
             <div className="flex flex-wrap gap-2 w-full md:w-auto relative z-10 shrink-0">
-              <Button onClick={() => navigate('/profile/edit')} variant="secondary" size="sm" className="gap-1.5 py-2 px-3 text-xs">
-                <FiEdit size={14} /> Edit Profile
-              </Button>
-
               <Button onClick={handleCopyLink} variant="glass" size="sm" className="gap-1.5 py-2 px-3 text-xs">
                 {copied ? <FiCheck size={14} className="text-[#166534]" /> : <FiLink size={14} />}
                 {copied ? 'Copied URL' : 'Copy Portfolio'}

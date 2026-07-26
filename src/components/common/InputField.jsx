@@ -10,7 +10,8 @@ const InputField = ({
   error,
   required = false,
   className = '',
-  id
+  id,
+  disabled = false
 }) => {
   return (
     <div className={`flex flex-col gap-1.5 w-full ${className}`}>
@@ -34,8 +35,11 @@ const InputField = ({
           onChange={onChange}
           placeholder={placeholder}
           required={required}
+          disabled={disabled}
           className={`w-full text-body-md rounded-lg py-2 px-4 bsn-input transition-all duration-200 ${
             Icon ? 'pl-10' : ''
+          } ${
+            disabled ? 'opacity-60 cursor-not-allowed bg-surface-container' : ''
           } ${
             error 
               ? 'border-error/50 focus:border-error focus:ring-error/20' 
