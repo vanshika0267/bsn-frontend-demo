@@ -17,8 +17,7 @@ export default function GitHubConnect() {
   useEffect(() => {
     const saved = getSavedGitHubUsername();
     if (saved && !username) {
-      setInput(saved);
-      handleConnect(saved);
+      setInput(saved); // prefill only — user must click Connect (no auto-connect)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

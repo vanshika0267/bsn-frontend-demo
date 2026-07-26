@@ -25,6 +25,15 @@ const roleLabel = (backendRole) => ROLE_LABELS[String(backendRole || '').toLower
 const labelForUser = (me) =>
   (me && me.is_alumni && me.alumni_verified) ? 'Senior/Alumni' : roleLabel(me && me.role);
 
+// Neutral profile defaults — stop the demo/mock user's fields (skills, about,
+// accomplishments, awards, GitHub, etc.) from leaking in when the backend omits them.
+const EMPTY_PROFILE = {
+  skills: [], achievements: [], awards: [], interests: [],
+  sharedResources: [], projects: [],
+  about: '', bio: '', headline: '',
+  impactScore: 0, githubUsername: null,
+};
+
 export function AppProvider({ children }) {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('bsn_user');
@@ -160,7 +169,7 @@ export function AppProvider({ children }) {
     apiGetMe()
       .then((me) => {
         const label = labelForUser(me);
-        const fetched = { ...initialUser, ...me, role: label };
+        const fetched = { ...initialUser, ...EMPTY_PROFILE, ...me, role: label };
         if (savedUser) {
           const parsedSaved = JSON.parse(savedUser);
           if (parsedSaved.id === fetched.id || parsedSaved.email === fetched.email) {
@@ -184,7 +193,7 @@ export function AppProvider({ children }) {
     await apiLogin(email, password);           // stores JWT (throws on bad credentials)
     const me = await apiGetMe();               // fetch the real user (includes role)
     const label = labelForUser(me);          // role comes from the backend
-    const loggedUser = { ...initialUser, ...me, role: label, email: me.email || email };
+    const loggedUser = { ...initialUser, ...EMPTY_PROFILE, ...me, role: label, email: me.email || email };
     setUser(loggedUser);
     setUserRole(label);
     setIsAuthenticated(true);
