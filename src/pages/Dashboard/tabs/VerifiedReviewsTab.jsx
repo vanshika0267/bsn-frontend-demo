@@ -7,74 +7,7 @@ import EmptyState from '../../../components/common/EmptyState';
 import InputField from '../../../components/common/InputField';
 import { FiStar, FiEdit3, FiCheckCircle, FiLock, FiBookOpen, FiBriefcase } from 'react-icons/fi';
 
-const initialPrograms = [
-  {
-    id: 1,
-    name: 'Stripe Software Engineering Internship',
-    type: 'internship',
-    rating: 4.8,
-    reviewsCount: 3,
-    verifiedOnly: true,
-    reviews: [
-      {
-        id: 101,
-        author: 'Marcus Vance',
-        role: 'Senior/Alumni',
-        rating: 5,
-        content: 'Unbelievable mentorship and high code quality standard. The biopay authentication project I worked on had real production impact within week 3. Sourcing pipeline was super structured.',
-        date: 'June 10, 2026',
-        verified: true
-      },
-      {
-        id: 102,
-        author: 'Alex Rivera',
-        role: 'Student',
-        rating: 4,
-        content: 'Great engineering culture and standard. The interns get treated like full time developers. High learning curve but totally worth the effort.',
-        date: 'May 28, 2026',
-        verified: true
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Google STEP Internship Program',
-    type: 'internship',
-    rating: 4.7,
-    reviewsCount: 2,
-    verifiedOnly: true,
-    reviews: [
-      {
-        id: 201,
-        author: 'Sarah Jenkins',
-        role: 'Senior/Alumni',
-        rating: 5,
-        content: 'STEP is a phenomenal entry point. The structural guide and matching support for return offers are best in class. Fully verified process.',
-        date: 'April 15, 2026',
-        verified: true
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: 'MIT Discrete Mathematics (CS-202)',
-    type: 'course',
-    rating: 4.5,
-    reviewsCount: 2,
-    verifiedOnly: false,
-    reviews: [
-      {
-        id: 301,
-        author: 'Emily Watson',
-        role: 'Student',
-        rating: 4,
-        content: 'Rigorous coursework but highly fundamental. The lectures are fully covered online. Make sure you practice the combinatorics cheat sheets.',
-        date: 'June 01, 2026',
-        verified: true
-      }
-    ]
-  }
-];
+const initialPrograms = [];
 
 const VerifiedReviewsTab = () => {
   const { user, userRole, updateProfile } = useApp();
