@@ -1011,6 +1011,91 @@ const ProfilePage = () => {
           </form>
         </Modal>
 
+        <Modal
+          isOpen={isSkillsModalOpen}
+          onClose={() => setIsSkillsModalOpen(false)}
+          title="Edit Skills"
+          size="sm"
+        >
+          <form onSubmit={handleSaveSkills} className="space-y-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={skillInput}
+                onChange={(e) => setSkillInput(e.target.value)}
+                onKeyDown={handleAddSkill}
+                placeholder="Add a skill (e.g. React.js)"
+                className="flex-1 text-sm rounded-lg py-2 px-3 bg-white border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface"
+              />
+              <Button type="button" variant="outline" size="sm" onClick={handleAddSkillClick} className="gap-1">
+                <FiPlus size={14} /> Add
+              </Button>
+            </div>
+            {skillsError && <p className="text-[11px] text-error font-medium">{skillsError}</p>}
+            <div className="flex flex-wrap gap-2 min-h-[2rem]">
+              {tempSkills.length === 0 ? (
+                <p className="text-xs text-on-surface-variant">No skills yet — add some above.</p>
+              ) : (
+                tempSkills.map((skill, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface border border-outline-variant text-on-surface">
+                    {skill.name}
+                    <button type="button" onClick={() => handleRemoveSkill(idx)} className="text-on-surface-variant hover:text-error" title="Remove">
+                      <FiX size={12} />
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-outline-variant">
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsSkillsModalOpen(false)}>Cancel</Button>
+              <Button type="submit" variant="primary" size="sm">Save Skills</Button>
+            </div>
+          </form>
+        </Modal>
+
+        <Modal
+          isOpen={isInterestsModalOpen}
+          onClose={() => setIsInterestsModalOpen(false)}
+          title="Edit Academic Interests"
+          size="sm"
+        >
+          <form onSubmit={handleSaveInterests} className="space-y-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={interestInput}
+                onChange={(e) => setInterestInput(e.target.value)}
+                onKeyDown={handleAddInterest}
+                placeholder="Add an interest (e.g. Machine Learning)"
+                className="flex-1 text-sm rounded-lg py-2 px-3 bg-white border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-on-surface"
+              />
+              <Button type="button" variant="outline" size="sm" onClick={handleAddInterestClick} className="gap-1">
+                <FiPlus size={14} /> Add
+              </Button>
+            </div>
+            {interestsError && <p className="text-[11px] text-error font-medium">{interestsError}</p>}
+            <div className="flex flex-wrap gap-2 min-h-[2rem]">
+              {tempInterests.length === 0 ? (
+                <p className="text-xs text-on-surface-variant">No interests yet — add some above.</p>
+              ) : (
+                tempInterests.map((interest, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface border border-outline-variant text-on-surface">
+                    {interest}
+                    <button type="button" onClick={() => handleRemoveInterest(idx)} className="text-on-surface-variant hover:text-error" title="Remove">
+                      <FiX size={12} />
+                    </button>
+                  </span>
+                ))
+              )}
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-outline-variant">
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsInterestsModalOpen(false)}>Cancel</Button>
+              <Button type="submit" variant="primary" size="sm">Save Interests</Button>
+            </div>
+          </form>
+        </Modal>
+
+
       </div>
     </DashboardLayout>
   );
