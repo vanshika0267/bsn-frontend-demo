@@ -58,6 +58,12 @@ export async function apiRegister({ name, email, password, college, is_alumni, g
 
 export const becomeAlumnus = () => req("POST", "/users/me/become-alumni");
 
+// ---- Email OTP verification (registration + email change) ----
+export const sendRegisterOtp = (email) => req("POST", "/auth/send-otp", { email, purpose: "register" });
+export const verifyRegisterOtp = (email, code) => req("POST", "/auth/verify-otp", { email, code, purpose: "register" });
+export const sendEmailChangeOtp = () => req("POST", "/users/me/email-otp");
+export const changeEmail = (newEmail, code) => req("POST", "/users/me/change-email", { new_email: newEmail, code });
+
 export async function apiLogin(email, password) {
   const body = new URLSearchParams();
   body.append("username", email);
