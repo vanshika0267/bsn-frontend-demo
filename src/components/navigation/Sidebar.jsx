@@ -49,7 +49,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Close Button on Mobile */}
         <button 
           onClick={onClose}
-          className="absolute top-5 right-5 p-1 text-on-surface-variant hover:text-on-surface lg:hidden"
+          className="absolute top-5 right-5 p-1 text-on-surface-variant hover:text-on-surface"
         >
           <FiX size={20} />
         </button>

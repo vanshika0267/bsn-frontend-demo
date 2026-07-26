@@ -31,7 +31,7 @@ const EMPTY_PROFILE = {
   skills: [], achievements: [], awards: [], interests: [],
   sharedResources: [], projects: [],
   about: '', bio: '', headline: '',
-  impactScore: 0, githubUsername: null,
+  impactScore: 0, githubUsername: null, profilePicture: '',
 };
 
 export function AppProvider({ children }) {

@@ -15,6 +15,8 @@ import Badge from '../../components/common/Badge';
 import GitHubConnect from '../../components/github/GitHubConnect';
 import EmptyState from '../../components/common/EmptyState';
 
+import Avatar from '../../components/common/Avatar';
+
 const getDefaultAvatar = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=eff6ff&color=1e40af&size=200&bold=true`;
 
 const ProfilePage = () => {
@@ -449,8 +451,7 @@ const ProfilePage = () => {
   const handleRemoveAvatar = () => {
     setAvatarError('');
     setAvatarSuccess(false);
-    const defaultAv = getDefaultAvatar(user.name);
-    setAvatarPreview(defaultAv);
+    setAvatarPreview('');
   };
 
   // Become alumnus handler
@@ -518,11 +519,7 @@ const ProfilePage = () => {
                 className="group relative cursor-pointer overflow-hidden rounded-xl w-24 h-24 sm:w-28 sm:h-28 ring-4 ring-white shadow-lg shrink-0 transition-transform duration-300 hover:scale-105"
                 title="Click to update profile picture"
               >
-                <img
-                  src={user.profilePicture}
-                  alt={user.name}
-                  className="w-full h-full object-cover"
-                />
+                <Avatar src={user.profilePicture} alt={user.name} />
                 <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center text-white gap-1 select-none">
                   <FiCamera size={18} className="animate-pulse" />
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-center px-1">Update Photo</span>
@@ -633,11 +630,6 @@ const ProfilePage = () => {
                 </>
               )}
 
-              {userRole !== 'Senior/Alumni' && (
-                <Button onClick={handleBecomeAlumnus} disabled={promoting} variant="secondary" size="sm" className="gap-1.5 py-2 px-3 text-xs">
-                  <FiBriefcase size={14} /> {promoting ? 'Updating…' : 'Become Alumnus'}
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -869,11 +861,7 @@ const ProfilePage = () => {
           <form onSubmit={handleSaveAvatar} className="space-y-5">
             <div className="flex flex-col sm:flex-row items-center gap-5 p-4 bg-surface rounded-xl border border-outline-variant/60">
               <div className="relative shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-outline-variant shadow-md">
-                <img
-                  src={avatarPreview}
-                  alt="Profile preview"
-                  className="w-full h-full object-cover"
-                />
+                <Avatar src={avatarPreview} alt="Profile preview" />
               </div>
               <div className="flex-1 w-full space-y-2">
                 <div className="group relative flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/50 rounded-lg p-4 transition-all duration-200 bg-white hover:bg-primary/5 cursor-pointer">

@@ -15,12 +15,11 @@ import {
   teamFinderPosts as initialTeamPosts, 
   recentActivity as initialActivity 
 } from '../../data/mockData';
-import { 
-  recruiterCandidates, recruiterJobPostings, recruiterApplications, 
-  seniorMentorshipRequests, seniorQuestions, 
-  collegeStudents, collegeVerifications, 
-  platformUsers, platformSystemLogs 
-} from '../../data/roleMockData';
+// De-mocked: role dashboards start empty and fill from real data.
+const recruiterCandidates = [], recruiterJobPostings = [], recruiterApplications = [];
+const seniorMentorshipRequests = [], seniorQuestions = [];
+const collegeStudents = [], collegeVerifications = [];
+const platformUsers = [], platformSystemLogs = [];
 import { myOpportunities, getApplicants, adminStats, getScore, studentsLeaderboard, myResources, listOpportunities } from '../../services/api';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import StatCard from '../../components/cards/StatCard';
