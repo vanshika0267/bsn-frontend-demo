@@ -12,7 +12,7 @@ const initialPrograms = [];
 const VerifiedReviewsTab = () => {
   const { user, userRole, updateProfile } = useApp();
   const [programs, setPrograms] = useState(initialPrograms);
-  const [selectedProgram, setSelectedProgram] = useState(initialPrograms[0]);
+  const [selectedProgram, setSelectedProgram] = useState(initialPrograms[0] || null);
   const [showForm, setShowForm] = useState(false);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
@@ -67,6 +67,22 @@ const VerifiedReviewsTab = () => {
     });
   };
 
+  if (programs.length === 0 || !selectedProgram) {
+    return (
+      <div className="space-y-6 text-left">
+        <div>
+          <h1 className="text-xl font-bold font-poppins text-on-surface">Verified Sourced Reviews</h1>
+          <p className="text-xs text-on-surface-variant">Read and write validated reviews for academic courses and recruiting internships. Access restricted to verified student accounts.</p>
+        </div>
+        <EmptyState
+          icon={FiStar}
+          title="No reviews yet"
+          description="Verified reviews for courses and internships will appear here once students start submitting them."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -75,11 +91,6 @@ const VerifiedReviewsTab = () => {
         <p className="text-xs text-on-surface-variant">Read and write validated reviews for academic courses and recruiting internships. Access restricted to verified student accounts.</p>
       </div>
 
-      <EmptyState
-        icon={FiStar}
-        title="No reviews yet"
-        description="Verified reviews for courses and internships will appear here once students start submitting them."
-      />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left Side: Program Selection List */}
