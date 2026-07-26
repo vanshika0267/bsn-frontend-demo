@@ -9,6 +9,7 @@ import InputField from '../../components/common/InputField';
 import Checkbox from '../../components/common/Checkbox';
 import Select from '../../components/common/Select';
 import Badge from '../../components/common/Badge';
+import { sendEmailChangeOtp, changeEmail } from '../../services/api';
 
 const SettingsPage = () => {
   const { user, updateProfile, settings, updateSettings } = useApp();
@@ -30,14 +31,53 @@ const SettingsPage = () => {
   const [email, setEmail] = useState(user.email);
   const [college, setCollege] = useState(user.college);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailOtpCode, setEmailOtpCode] = useState('');
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailError, setEmailError] = useState('');
   
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
-  const handleProfileSave = (e) => {
+  const handleProfileSave = async (e) => {
     e.preventDefault();
-    updateProfile({ name, email, college });
-    triggerSuccess();
+    setEmailError('');
+    const emailChanged = (email || '').trim().toLowerCase() !== (user.email || '').trim().toLowerCase();
+    if (!emailChanged) {
+      updateProfile({ name, email, college });
+      setIsEditingProfile(false);
+      triggerSuccess();
+      return;
+    }
+    // Email changed → verify via a code sent to the CURRENT email before applying.
+    updateProfile({ name, college });
+    setEmailBusy(true);
+    try {
+      await sendEmailChangeOtp();
+      setEmailOtpSent(true);
+    } catch (err) {
+      setEmailError(err.message || 'Could not send verification code');
+    } finally {
+      setEmailBusy(false);
+    }
+  };
+
+  const handleVerifyEmailChange = async () => {
+    setEmailError('');
+    if (!emailOtpCode.trim()) { setEmailError('Enter the code sent to your current email.'); return; }
+    setEmailBusy(true);
+    try {
+      const res = await changeEmail(email.trim(), emailOtpCode.trim());
+      updateProfile({ email: res.email || email.trim() });
+      setEmailOtpSent(false);
+      setEmailOtpCode('');
+      setIsEditingProfile(false);
+      triggerSuccess();
+    } catch (err) {
+      setEmailError(err.message || 'Invalid or expired code');
+    } finally {
+      setEmailBusy(false);
+    }
   };
 
   const handlePasswordSave = (e) => {
@@ -159,6 +199,28 @@ const SettingsPage = () => {
                     disabled={!isEditingProfile}
                     id="sett-college"
                   />
+
+                  {(emailError || emailOtpSent) && (
+                    <div className="rounded-lg border border-outline-variant p-3 space-y-2">
+                      {emailError && <p className="text-[11px] text-error font-medium">{emailError}</p>}
+                      {emailOtpSent && (
+                        <>
+                          <p className="text-[11px] text-on-surface-variant">Enter the 6-digit code we sent to your current email ({user.email}) to confirm the change.</p>
+                          <div className="flex gap-2">
+                            <InputField
+                              value={emailOtpCode}
+                              onChange={(e) => setEmailOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                              placeholder="Enter code"
+                              id="sett-email-otp"
+                            />
+                            <Button type="button" variant="primary" size="sm" onClick={handleVerifyEmailChange} disabled={emailBusy}>
+                              {emailBusy ? 'Verifying…' : 'Verify & change email'}
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
 
                   <div className="pt-2 flex gap-2">
                     {!isEditingProfile ? (

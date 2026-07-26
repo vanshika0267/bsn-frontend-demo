@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
+import { sendRegisterOtp, verifyRegisterOtp } from '../../services/api';
 import { detectRoleFromEmail, ROLE_META } from '../../utils/roleDetection';
 import Login3DBackground from '../../components/auth/Login3DBackground';
 import logo from '../../assets/logo.png';
@@ -117,6 +118,8 @@ export default function AuthPage({ initialMode }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
 
   // Mentorship/Alumni registration options
   const [registerAsAlumni, setRegisterAsAlumni] = useState(false);
@@ -276,8 +279,28 @@ export default function AuthPage({ initialMode }) {
       determinedRole = 'Platform Admin';
     }
 
+    // Email verification gate: send a code first, then verify before creating the account.
+    if (!otpSent) {
+      setLoading(true);
+      try {
+        await sendRegisterOtp(email);
+        setOtpSent(true);
+        setError('');
+      } catch (err) {
+        setError(err.message || 'Could not send verification code');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    if (!otpCode.trim()) {
+      setError('Enter the 6-digit code sent to your email');
+      return;
+    }
+
     setLoading(true);
     try {
+      await verifyRegisterOtp(email, otpCode.trim());
       const university = collegeName.trim() || institutionName.trim() || companyName.trim() || 'BioPay University';
       const data = {
         name: name.trim(),
@@ -862,6 +885,30 @@ export default function AuthPage({ initialMode }) {
 
               {renderMessage()}
 
+              {otpSent && (
+                <div className="flex flex-col gap-1.5 pt-1">
+                  <label className="text-[12px] font-bold text-slate-600 dark:text-slate-300">
+                    Enter the 6-digit code sent to {email}
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="------"
+                    className={inputClass + ' tracking-[0.5em] text-center'}
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => { try { await sendRegisterOtp(email); setError(''); } catch (err) { setError(err.message || 'Could not resend code'); } }}
+                    className="text-[11px] text-[#2563EB] font-semibold self-start hover:underline"
+                  >
+                    Resend code
+                  </button>
+                </div>
+              )}
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
@@ -875,7 +922,7 @@ export default function AuthPage({ initialMode }) {
                   disabled={loading}
                   className={`flex-1 ${btnPrimaryClass}`}
                 >
-                  {loading ? 'Creating account…' : 'Create Account'}
+                  {loading ? (otpSent ? 'Verifying…' : 'Sending code…') : (otpSent ? 'Verify & Create Account' : 'Create Account')}
                 </button>
               </div>
             </form>
